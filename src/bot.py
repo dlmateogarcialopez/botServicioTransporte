@@ -33,7 +33,23 @@ def manejarMenuPrincipal(message):
 @bot.message_handler(regexp="Registrar datos de vehiculo")
 def solicitarDocumentoPropietario(message):    
     respuesta = bot.send_message(message.chat.id, 'Ingresa por favor el documento del propietario del vehículo')
-    bot.register_next_step_handler(respuesta, solicitarCorreoElectronicoPropietario)
+    bot.register_next_step_handler(respuesta, validarDocumentoPropietario)
+
+
+def validarDocumentoPropietario(message):
+    #Validar si el documento del propietario ya existe, si ya existe se le pregunta al usuario si desea seguir con los datos ya existente o si desea continuar con un registro nuevo de usuario diferente
+    existeVehiculo = Vehiculo.validarExistenciaDocumento(message)
+    if existeVehiculo == True:
+        Vehiculo.validarOpcionDeRegistro(bot, types, message)
+    else:
+        solicitarCorreoElectronicoPropietario(message)
+
+
+@bot.message_handler(regexp="Continuar con el registro actual")
+def solicitarDocumentoPropietario(message):    
+        placaVehiculo = bot.send_message(message.chat.id, 'Ingresa por favor la placa del vehículo')
+        bot.register_next_step_handler(placaVehiculo, solicitarDescripcionVehiculo)
+
 
 def solicitarCorreoElectronicoPropietario(message):
     try:
@@ -58,7 +74,7 @@ def solicitarNombrePropietario(message):
 def solicitarPlacaVehiculo(message):
         try:
             #Persiste la respuesta ingresada por el usuario y retorna la respuesta
-            respuesta =  Vehiculo.solicitarDatos(message, bot, 'Ingresa por favor la placa del vehículo', 'placaVehiculo')
+            respuesta =  Vehiculo.solicitarDatos(message, bot, 'Ingresa por favor la placa del vehículo', 'nombrePropietario')
             
             #Se llama al metodo register_next_step_handler para continuar con la conversación 
             bot.register_next_step_handler(respuesta, solicitarDescripcionVehiculo)
@@ -68,7 +84,7 @@ def solicitarPlacaVehiculo(message):
 def solicitarDescripcionVehiculo(message):
         try:
             #Persiste la respuesta ingresada por el usuario y retorna la respuesta
-            respuesta =  Vehiculo.solicitarDatos(message, bot, 'Ingresa por favor la descripción del vehículo', 'descripcioVehiculo')
+            respuesta =  Vehiculo.solicitarDatos(message, bot, 'Ingresa por favor la descripción del vehículo', 'placaVehiculo')
             
             #Se llama al metodo register_next_step_handler para continuar con la conversación 
             bot.register_next_step_handler(respuesta, solicitarNivelAceiteVehiculo)
@@ -78,7 +94,7 @@ def solicitarDescripcionVehiculo(message):
 def solicitarNivelAceiteVehiculo(message):
         try:
             #Persiste la respuesta ingresada por el usuario y retorna la respuesta
-            respuesta =  Vehiculo.solicitarDatos(message, bot, 'Ingresa por favor el nivel de aceite del vehículo', 'nivelAceite')
+            respuesta =  Vehiculo.solicitarDatos(message, bot, 'Ingresa por favor el nivel de aceite del vehículo', 'descripcioVehiculo')
             
             #Se llama al metodo register_next_step_handler para continuar con la conversación 
             bot.register_next_step_handler(respuesta, solicitarNivelLiquidoVehiculo)
@@ -88,7 +104,7 @@ def solicitarNivelAceiteVehiculo(message):
 def solicitarNivelLiquidoVehiculo(message):
         try:
             #Persiste la respuesta ingresada por el usuario y retorna la respuesta
-            respuesta =  Vehiculo.solicitarDatos(message, bot, 'Ingresa por favor el nivel de líquido del vehículo', 'nivelLiquidoFrenos')
+            respuesta =  Vehiculo.solicitarDatos(message, bot, 'Ingresa por favor el nivel de líquido del vehículo', 'nivelAceite')
             
             #Se llama al metodo register_next_step_handler para continuar con la conversación 
             bot.register_next_step_handler(respuesta, solicitarNivelRefrigeranteVehiculo)
@@ -98,7 +114,7 @@ def solicitarNivelLiquidoVehiculo(message):
 def solicitarNivelRefrigeranteVehiculo(message):
         try:
             #Persiste la respuesta ingresada por el usuario y retorna la respuesta
-            respuesta =  Vehiculo.solicitarDatos(message, bot, 'Ingresa por favor el nivel de refrigerante del vehículo', 'nivelRefrigerante')
+            respuesta =  Vehiculo.solicitarDatos(message, bot, 'Ingresa por favor el nivel de refrigerante del vehículo', 'nivelLiquidoFrenos')
             
             #Se llama al metodo register_next_step_handler para continuar con la conversación 
             bot.register_next_step_handler(respuesta, solicitarNivelLiquidoDireccionVehiculo)
@@ -108,7 +124,7 @@ def solicitarNivelRefrigeranteVehiculo(message):
 def solicitarNivelLiquidoDireccionVehiculo(message):
         try:
             #Persiste la respuesta ingresada por el usuario y retorna la respuesta
-            respuesta =  Vehiculo.solicitarDatos(message, bot, 'Ingresa por favor el nivel de líquido de dirección del vehículo', 'nivelLiquidoDireccion')
+            respuesta =  Vehiculo.solicitarDatos(message, bot, 'Ingresa por favor el nivel de líquido de dirección del vehículo', 'nivelRefrigerante')
             
             #Se llama al metodo register_next_step_handler para continuar con la conversación 
             bot.register_next_step_handler(respuesta, solicitarFotoSoatVehiculo)
@@ -118,7 +134,7 @@ def solicitarNivelLiquidoDireccionVehiculo(message):
 def solicitarFotoSoatVehiculo(message):
         try:
             #Persiste la respuesta ingresada por el usuario y retorna la respuesta
-            respuesta =  Vehiculo.solicitarDatos(message, bot, 'Ingresa por favor la foto del soat del vehículo', 'soat')
+            respuesta =  Vehiculo.solicitarDatos(message, bot, 'Ingresa por favor la foto del soat del vehículo', 'nivelLiquidoDireccion')
             
             #Se llama al metodo register_next_step_handler para continuar con la conversación 
             bot.register_next_step_handler(respuesta, solicitarFotoSegurocontractualVehiculo)
@@ -128,7 +144,7 @@ def solicitarFotoSoatVehiculo(message):
 def solicitarFotoSegurocontractualVehiculo(message):
         try:
             #Persiste la respuesta ingresada por el usuario y retorna la respuesta
-            respuesta =  Vehiculo.solicitarDatos(message, bot, 'Ingresa por favor la foto del seguro contractual del vehículo', 'seguroContractual')
+            respuesta =  Vehiculo.solicitarDatos(message, bot, 'Ingresa por favor la foto del seguro contractual del vehículo', 'soat')
             
             #Se llama al metodo register_next_step_handler para continuar con la conversación 
             bot.register_next_step_handler(respuesta, solicitarFotoSeguroExtracontractualVehiculo)
@@ -138,14 +154,22 @@ def solicitarFotoSegurocontractualVehiculo(message):
 def solicitarFotoSeguroExtracontractualVehiculo(message):
         try:
             #Persiste la respuesta ingresada por el usuario y retorna la respuesta
-            respuesta =  Vehiculo.solicitarDatos(message, bot, 'Ingresa por favor la foto del seguro extracontractual del vehículo', 'seguroExtraContrActual')
+            respuesta =  Vehiculo.solicitarDatos(message, bot, 'Ingresa por favor la foto del seguro extracontractual del vehículo', 'seguroContractual')
+
+            #Se llama al metodo register_next_step_handler para continuar con la conversación 
+            bot.register_next_step_handler(respuesta, almacenarDatosDeVehiculo)
+        except Exception as e:
+            bot.reply_to(message, f"Algo terrible sucedió: {e}")     
+
+def almacenarDatosDeVehiculo(message):
+        try:
 
             #almacenar respuesta tota, en la base de datos
-            Vehiculo.almacenarDatosVehiculo(respuesta, message)
+            Vehiculo.almacenarDatosVehiculo(message)
 
             bot.reply_to(message, 'Registro exitoso')
         except Exception as e:
-            bot.reply_to(message, f"Algo terrible sucedió: {e}")     
+            bot.reply_to(message, f"Algo terrible sucedió: {e}")              
                                                                        
 
 

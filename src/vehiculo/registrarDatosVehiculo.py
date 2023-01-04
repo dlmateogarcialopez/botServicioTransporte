@@ -70,13 +70,39 @@ class Vehiculo:
         return respuesta
                                                                                        
 
-    def almacenarDatosVehiculo(respuesta, data):
+    def almacenarDatosVehiculo(data):
 
         fotoSeguroExtraContractual = data.text
 
         record = informacion_vehiculo[data.chat.id]
         record.seguroExtraContrActual = fotoSeguroExtraContractual
-    
 
+
+    def validarExistenciaDocumento(data):
+        if data.text == '123':
+
+            record = Record()
+
+            informacion_vehiculo[data.chat.id] = record
+
+            datosVehiculo = informacion_vehiculo[data.chat.id]
+            datosVehiculo.documentoPopietario = data.text
+            datosVehiculo.correoPropietario = "correo@gmail.com"
+            datosVehiculo.nombrePropietario = "Nombre existente"
+
+            return True
+        else:
+            return False
+
+    def validarOpcionDeRegistro(bot, types, message):
+        markup = types.ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
+
+        itembtn1 = types.KeyboardButton('Registrar datos de vehiculo')
+        itembtn2 = types.KeyboardButton('Continuar con el registro actual')
+
+        markup.row(itembtn1)
+        markup.row(itembtn2)
+    
+        bot.send_message(message.chat.id, "Este número de documento ya existe en el sistema, ¿te gustaría continuar el registro del vehículo con un los datos almacenados o te gustaría realizar un nuevo registro ?:", reply_markup=markup)
 
     
