@@ -1,20 +1,6 @@
-class Record:
-    def __init__(self):
-        self.documentoPopietario = None
-        self.correoPropietario = None
-        self.nombrePropietario = None
-        self.placaVehiculo = None
-        self.descripcioVehiculo = None
-        self.nivelAceite = None
-        self.nivelLiquidoFrenos = None
-        self.nivelRefrigerante = None
-        self.nivelLiquidoDireccion = None
-        self.soat = None
-        self.seguroContractual = None
-        self.seguroExtraContrActual = None
-
-
+from time import sleep
 informacion_vehiculo = {}
+
 class Vehiculo:
 
     def __init__(self):
@@ -31,6 +17,7 @@ class Vehiculo:
 
         informacion_vehiculo[data.chat.id] = record
 
+        Vehiculo.enviarAccionEscribiendo(data, bot)
         respuesta = bot.reply_to(data, 'Ingresa por favor el correo electrónico del propietario del vehículo')
 
         return respuesta
@@ -64,18 +51,33 @@ class Vehiculo:
         record = informacion_vehiculo[data.chat.id]
 
         Vehiculo.obtenerClaveObjeto(record, clave, data)
+
+        Vehiculo.enviarAccionEscribiendo(data, bot)
         
         respuesta = bot.reply_to(data, mensaje)
 
         return respuesta
+
+    def enviarAccionEscribiendo(data, bot):
+            bot.send_chat_action(data.chat.id, 'typing')
+            sleep(1)        
                                                                                        
 
-    def almacenarDatosVehiculo(data):
+    def almacenarDatosVehiculo(data, bot):
 
         fotoSeguroExtraContractual = data.text
 
         record = informacion_vehiculo[data.chat.id]
-        record.seguroExtraContrActual = fotoSeguroExtraContractual
+        record.seguroExtraContrActual = fotoSeguroExtraContractual    
+
+        datosCompletos = Vehiculo.validarDatosCompletos(record)
+        if(datosCompletos):
+            #Asignar el mecanico al vegiculo
+            record.mecanicoAsignado = '456987'
+            bot.reply_to(data, 'Registro exitoso')
+
+    def seleccionarMecanicoDisponible():
+        mecanicosDisponibles = {"147": True, "789": False, "564": True}
 
 
     def validarExistenciaDocumento(data):
@@ -94,6 +96,34 @@ class Vehiculo:
         else:
             return False
 
+    def validarExistenciaPlaca(data):
+        if data.text == 'hqd69f':
+            return True
+        else:
+            return False 
+
+    def validarExistenciaCorreoElectronico(data):
+        if data.text == 'correo@gmail.com':
+            return True
+        else:
+            return False             
+
+    def mostrarMenuPrincipal(data, bot, types, msg):
+            markup = types.ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
+
+            itembtn1 = types.KeyboardButton('Registrar datos de vehiculo')
+            itembtn2 = types.KeyboardButton('Registrar líquidos y repuestos')
+            itembtn3 = types.KeyboardButton('Históricos')
+            itembtn4 = types.KeyboardButton('Seguros')
+
+            markup.row(itembtn1)
+            markup.row(itembtn2)
+            markup.row(itembtn3)
+            markup.row(itembtn4)
+            #markup.add(itembtn1, itembtn2, itembtn3, itembtn4)
+        
+            bot.send_message(data.chat.id, msg, reply_markup=markup)                       
+
     def validarOpcionDeRegistro(bot, types, message):
         markup = types.ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
 
@@ -105,4 +135,60 @@ class Vehiculo:
     
         bot.send_message(message.chat.id, "Este número de documento ya existe en el sistema, ¿te gustaría continuar el registro del vehículo con un los datos almacenados o te gustaría realizar un nuevo registro ?:", reply_markup=markup)
 
-    
+    def validarDatosCompletos(data):
+
+        if data.documentoPopietario == None:
+            return False
+        
+        if data.correoPropietario == None:
+            return False
+
+        if data.nombrePropietario == None:
+            return False
+
+        if data.placaVehiculo == None:
+            return False
+
+        if data.descripcioVehiculo == None:
+            return False
+
+        if data.nivelAceite == None:
+            return False
+
+        if data.nivelLiquidoFrenos == None:
+            return False
+
+        if data.nivelRefrigerante == None:
+            return False
+
+        if data.nivelLiquidoDireccion == None:
+            return False
+
+        if data.soat == None:
+            return False
+
+        if data.seguroContractual == None:
+            return False
+
+        if data.seguroExtraContrActual == None:
+            return False
+
+        return True
+
+
+class Record:
+    def __init__(self):
+        self.documentoPopietario = None
+        self.correoPropietario = None
+        self.nombrePropietario = None
+        self.placaVehiculo = None
+        self.descripcioVehiculo = None
+        self.nivelAceite = None
+        self.nivelLiquidoFrenos = None
+        self.nivelRefrigerante = None
+        self.nivelLiquidoDireccion = None
+        self.soat = None
+        self.seguroContractual = None
+        self.seguroExtraContrActual = None
+        self.mecanicoAsignado = None
+
