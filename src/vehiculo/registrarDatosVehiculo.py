@@ -1,6 +1,9 @@
 from time import sleep
+import json
+import os
+import sys
 informacion_vehiculo = {}
-
+vehiculos_registrados = []
 class Vehiculo:
 
     def __init__(self):
@@ -72,12 +75,23 @@ class Vehiculo:
 
         datosCompletos = Vehiculo.validarDatosCompletos(record)
         if(datosCompletos):
-            #Asignar el mecanico al vegiculo
-            record.mecanicoAsignado = '456987'
+            #Asignar el mecanico al vegiculo   
+            mecanicoAsignado = Vehiculo.seleccionarMecanicoDisponible()         
+            record.mecanicoAsignado = mecanicoAsignado
+
+            #Almacenar información del vehículo
+            vehiculos_registrados.append(record)
             bot.reply_to(data, 'Registro exitoso')
 
+    #Buscar mecánico disponible para ser asignado
     def seleccionarMecanicoDisponible():
-        mecanicosDisponibles = {"147": True, "789": False, "564": True}
+        with open(os.path.join(sys.path[0], 'vehiculo/mecanico.json'), "r") as contenido:
+            data = json.load(contenido)
+
+        mecanicos = data['mecanicos']
+        for mecanico in mecanicos:
+            if mecanico['disponibilidad']:
+                return mecanico['documento']
 
 
     def validarExistenciaDocumento(data):

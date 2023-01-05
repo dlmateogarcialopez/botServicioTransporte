@@ -32,7 +32,6 @@ def manejarMenuPrincipal(message):
 
 @bot.message_handler(regexp="Registrar datos de vehiculo")
 def solicitarDocumentoPropietario(message):
-    Vehiculo.enviarAccionEscribiendo(message, bot)    
     respuesta = bot.send_message(message.chat.id, 'Ingresa por favor el documento del propietario del vehículo')
     bot.register_next_step_handler(respuesta, validarDocumentoPropietario)
 
