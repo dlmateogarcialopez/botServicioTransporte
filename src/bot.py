@@ -3,7 +3,7 @@ from config import bot
 from telebot import types
 from time import sleep
 from vehiculo.registrarDatosVehiculo import Vehiculo
-######################################################### sqlalquemy
+######################################################### ###sqlalquemy
 
 # Enable saving next step handlers to file "./.handlers-saves/step.save".
 # Delay=2 means that after any change in next step handlers (e.g. calling register_next_step_handler())
@@ -32,7 +32,6 @@ def manejarMenuPrincipal(message):
 
 @bot.message_handler(regexp="Registrar datos de vehiculo")
 def solicitarDocumentoPropietario(message):
-    Vehiculo.enviarAccionEscribiendo(message, bot)    
     respuesta = bot.send_message(message.chat.id, 'Ingresa por favor el documento del propietario del vehículo')
     bot.register_next_step_handler(respuesta, validarDocumentoPropietario)
 

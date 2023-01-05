@@ -1,0 +1,28 @@
+{
+    "mecanicos": [
+        {
+            "nombre": "andres gomez",
+            "disponibilidad": true,
+            "caro_asigando": [],
+            "documento": "123"
+        },
+        {
+            "nombre": "sebastian garcia",
+            "disponibilidad": false,
+            "caro_asigando": ["hqd65f"],
+            "documento": "345"
+        },
+        {
+            "nombre": "manuel lopez",
+            "disponibilidad": true,
+            "caro_asigando": [],
+            "documento": "564"
+        },
+        {
+            "nombre": "margarita ospina",
+            "disponibilidad": true,
+            "caro_asigando": [],
+            "documento": "657"
+        }
+    ]
+}
