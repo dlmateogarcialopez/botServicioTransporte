@@ -3,6 +3,7 @@ from config import bot
 from telebot import types
 from time import sleep
 from vehiculo.registrarDatosVehiculo import Vehiculo
+from seguros.registrarSeguros import Seguro
 ######################################################### ###sqlalquemy
 
 # Enable saving next step handlers to file "./.handlers-saves/step.save".
@@ -182,7 +183,6 @@ def almacenarDatosDeVehiculo(message):
             
         except Exception as e:
             bot.reply_to(message, f"Algo terrible sucedió: {e}")              
-                                                                       
 
 
 @bot.message_handler(regexp="Registrar líquidos y repuestos")
@@ -193,10 +193,35 @@ def manejarRegistroLiquidosRepuestos(message):
 def manejarHistoricos(message):
     bot.send_message(message.chat.id, 'Históricos')
 
+###############################################################################################################################################################################
 @bot.message_handler(regexp="Seguros")
 def manejarSeguros(message):
-    bot.send_message(message.chat.id, 'Seguros')            
+        markup = types.ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
 
+        itembtn1 = types.KeyboardButton('Registrar')
+        itembtn2 = types.KeyboardButton('Consultar')
+
+        markup.row(itembtn1)
+        markup.row(itembtn2)
+        #markup.add(itembtn1, itembtn2, itembtn3, itembtn4)
+    
+        bot.send_message(message.chat.id, "Selecciona una opción del menú de seguros:", reply_markup=markup)   
+
+#Metodo para realizar el registro de los seguros
+@bot.message_handler(regexp="Registrar")
+def registrarSeguros(message):
+        try:
+            respuesta = bot.send_message(message.chat.id, 'Ingresa por favor la placa del vehículo')
+            bot.register_next_step_handler(respuesta, Seguro.validarPlacaVehiculo)
+        except Exception as e:
+            bot.reply_to(message, f"Algo terrible sucedió: {e}")   
+           
+#Metodo para la consulta de los seguros
+@bot.message_handler(regexp="Consultar")
+def consultarSeguros(message):
+    bot.send_message(message.chat.id, 'Consultar seguros')                
+
+###############################################################################################################################################################################
 
 @bot.message_handler(func=lambda message: True)
 def fallback(message):

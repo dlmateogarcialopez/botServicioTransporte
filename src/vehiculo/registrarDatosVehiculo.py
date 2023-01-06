@@ -2,8 +2,8 @@ from time import sleep
 import json
 import os
 import sys
-informacion_vehiculo = {}
-vehiculos_registrados = []
+informacion_vehiculo = {} #Almacenar información temporal de vehiculo que se registra
+vehiculos_registrados = [] #Almacenar todos los vehículos que se van registrando en el bot
 class Vehiculo:
 
     def __init__(self):
