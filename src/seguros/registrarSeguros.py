@@ -3,6 +3,7 @@ from vehiculo.registrarDatosVehiculo import vehiculos_registrados
 from telebot import types
 from config import bot
 placa = {'placa':'sinPlaca'}
+placaConsulta = {'placa':'sinPlaca'}
 seguros = {}
 class Seguro:
     def __init__(self):
@@ -83,26 +84,16 @@ class Seguro:
 
         #Almacenar en un objeto los tres seguros y cuando se este seguro que se ingresaron los tres, se realiza la actualización                 
       
-    #Validar si la placa esta en el sistema para consultar los seguros de los vehículos
+    #Validar si la placa está en el sistema para consultar el documento del propietario o mecánico
     def validarPlacaVehiculoConsulta(message):
         try:
             if len(vehiculos_registrados) > 0:
                 for vehiculo in vehiculos_registrados:     
                     if vehiculo.placaVehiculo == message.text:
-                        #mensaje que se le envia a l usuario para mostrar la información de los seguros
-                        bot.send_message(message.chat.id, f"Los últimos seguros registrados para el vehículo con placas {vehiculo.placaVehiculo} son: \nSOAT: {vehiculo.soat}, \nSeguro contractual: {vehiculo.seguroContractual}, \nSeguro extracontractual: {vehiculo.seguroExtraContrActual}")
+                        placaConsulta['placa'] = message.text
+                        respuesta = bot.send_message(message.chat.id, 'Ingresa por favor el documento del mecánico o del propietario')                        
+                        bot.register_next_step_handler(respuesta, Seguro.validarDocumento)
 
-                        #Mostrar opción de continuar con la charla  o terminar
-                        markup = types.ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
-
-                        itembtn1 = types.KeyboardButton('Si')
-                        itembtn2 = types.KeyboardButton('No')
-
-                        markup.row(itembtn1)
-                        markup.row(itembtn2)
-                    
-                        respuesta = bot.send_message(message.chat.id, '¿Te puedo ayudar en algo más?', reply_markup=markup)  
-                        bot.register_next_step_handler(respuesta, Seguro.validarTerminaciónDeConversacion)
                         return
             else:
                 Seguro.mostrarMenuPrincipal(message, bot, types, "No se encontró un vehículo con la placa ingresada, selecciona una opción:")
@@ -118,3 +109,26 @@ class Seguro:
                 bot.send_message(message.chat.id, f"Muchas gracias por usar mis servicios, espero que te vuelvas a contactar conmigo en futuras ocasiones")
         except Exception as e:
             bot.reply_to(message, f"Algo terrible sucedió: {e}") 
+
+    def validarDocumento(message):
+        if len(vehiculos_registrados) > 0:
+            for vehiculo in vehiculos_registrados:     
+                if vehiculo.placaVehiculo == placaConsulta['placa'] and (vehiculo.mecanicoAsignado == message.text or vehiculo.documentoPopietario == message.text):
+                    placaConsulta['placa'] = 'sinPlaca'
+                    #mensaje que se le envia a l usuario para mostrar la información de los seguros
+                    bot.send_message(message.chat.id, f"Los últimos seguros registrados para el vehículo con placas {vehiculo.placaVehiculo} son: \nSOAT: {vehiculo.soat} \nSeguro contractual: {vehiculo.seguroContractual} \nSeguro extracontractual: {vehiculo.seguroExtraContrActual}")
+
+                    #Mostrar opción de continuar con la charla  o terminar
+                    markup = types.ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
+
+                    itembtn1 = types.KeyboardButton('Si')
+                    itembtn2 = types.KeyboardButton('No')
+
+                    markup.row(itembtn1)
+                    markup.row(itembtn2)
+                    
+                    respuesta = bot.send_message(message.chat.id, '¿Te puedo ayudar en algo más?', reply_markup=markup)  
+                    bot.register_next_step_handler(respuesta, Seguro.validarTerminaciónDeConversacion)
+                    return
+        else:
+            Seguro.mostrarMenuPrincipal(message, bot, types, "No se encontró un vehículo con la placa ingresada, selecciona una opción:")           

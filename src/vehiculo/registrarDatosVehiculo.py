@@ -95,32 +95,32 @@ class Vehiculo:
 
 
     def validarExistenciaDocumento(data):
-        if data.text == '123':
+        for vehiculo in vehiculos_registrados:
+            if vehiculo.documentoPopietario == data.text:
 
-            record = Record()
+                record = Record()
 
-            informacion_vehiculo[data.chat.id] = record
+                informacion_vehiculo[data.chat.id] = record
 
-            datosVehiculo = informacion_vehiculo[data.chat.id]
-            datosVehiculo.documentoPopietario = data.text
-            datosVehiculo.correoPropietario = "correo@gmail.com"
-            datosVehiculo.nombrePropietario = "Nombre existente"
+                datosVehiculo = informacion_vehiculo[data.chat.id]
+                datosVehiculo.documentoPopietario = data.text
+                datosVehiculo.correoPropietario = "correo@gmail.com"
+                datosVehiculo.nombrePropietario = "Nombre existente"
+                return True
 
-            return True
-        else:
-            return False
+        return False
 
     def validarExistenciaPlaca(data):
-        if data.text == 'hqd69f':
-            return True
-        else:
-            return False 
+        for vehiculo in vehiculos_registrados:
+            if vehiculo.placaVehiculo == data.text:
+                return True
+        return False 
 
     def validarExistenciaCorreoElectronico(data):
-        if data.text == 'correo@gmail.com':
-            return True
-        else:
-            return False             
+        for vehiculo in vehiculos_registrados:
+            if vehiculo.correoPropietario == data.text:
+                return True
+        return False            
 
     def mostrarMenuPrincipal(data, bot, types, msg):
             markup = types.ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
@@ -147,7 +147,7 @@ class Vehiculo:
         markup.row(itembtn1)
         markup.row(itembtn2)
     
-        bot.send_message(message.chat.id, "Este número de documento ya existe en el sistema, ¿te gustaría continuar el registro del vehículo con un los datos almacenados o te gustaría realizar un nuevo registro ?:", reply_markup=markup)
+        bot.send_message(message.chat.id, "Este número de documento ya existe en el sistema, ¿te gustaría continuar el registro del vehículo con los datos almacenados o te gustaría realizar un nuevo registro ?:", reply_markup=markup)
 
     def validarDatosCompletos(data):
 
