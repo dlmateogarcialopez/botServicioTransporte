@@ -212,14 +212,19 @@ def manejarSeguros(message):
 def registrarSeguros(message):
         try:
             respuesta = bot.send_message(message.chat.id, 'Ingresa por favor la placa del vehículo')
-            bot.register_next_step_handler(respuesta, Seguro.validarPlacaVehiculo)
+            bot.register_next_step_handler(respuesta, Seguro.validarPlacaVehiculoRegistro)
         except Exception as e:
-            bot.reply_to(message, f"Algo terrible sucedió: {e}")   
+            bot.reply_to(message, f"Algo terrible sucedió: {e}")               
            
 #Metodo para la consulta de los seguros
 @bot.message_handler(regexp="Consultar")
 def consultarSeguros(message):
-    bot.send_message(message.chat.id, 'Consultar seguros')                
+        try:
+            respuesta = bot.send_message(message.chat.id, 'Ingresa por favor la placa del vehículo')
+            bot.register_next_step_handler(respuesta, Seguro.validarPlacaVehiculoConsulta)
+        except Exception as e:
+            bot.reply_to(message, f"Algo terrible sucedió: {e}") 
+                  
 
 ###############################################################################################################################################################################
 
