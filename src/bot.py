@@ -3,6 +3,7 @@ from config import bot
 from telebot import types
 from time import sleep
 from vehiculo.registrarDatosVehiculo import Vehiculo
+from liquidosRepuestos.registrarLiquidosRepuestos import LiqudosRepuestos
 ######################################################### ###sqlalquemy
 
 # Enable saving next step handlers to file "./.handlers-saves/step.save".
@@ -184,10 +185,51 @@ def almacenarDatosDeVehiculo(message):
             bot.reply_to(message, f"Algo terrible sucedió: {e}")              
                                                                        
 
+## inicio código Laura ##
 
 @bot.message_handler(regexp="Registrar líquidos y repuestos")
 def manejarRegistroLiquidosRepuestos(message):
-    bot.send_message(message.chat.id, 'Registrar líquidos y repuestos')
+    LiqudosRepuestos.enviarAccionEscribiendo(message, bot)   
+    respuesta = bot.send_message(message.chat.id, 'Ingresa por favor la placa del vehículo al cual le va a registrar líquidos y repuestos')
+
+    #respuesta = LiqudosRepuestos.solicitarPlaca(message, bot)     
+    bot.register_next_step_handler(respuesta, solicitarCedulaMecanico)
+  
+## fin código Laura ##
+
+## inicio código Laura ##
+def solicitarCedulaMecanico(message):
+        try:
+            #Validar si la placa ingresada, existe en el sistema
+            if (LiqudosRepuestos.validarExistenciaPlaca(message)) == False:
+                LiqudosRepuestos.mostrarMenuPrincipal(message, bot, types, "No se puede realizar el registro debido a que la placa no está en el sistema, selecciona una opción:")
+            else:
+                #Persiste la respuesta ingresada por el usuario y retorna la respuesta
+                respuesta =  LiqudosRepuestos.solicitarCedulaMecanico(message, bot)
+                
+                #Se llama al metodo register_next_step_handler para continuar con la conversación 
+                #bot.register_next_step_handler(respuesta, solicitarNivelAceite)
+
+        except Exception as e:
+            bot.reply_to(message, f"Algo terrible sucedió: {e}")  
+
+
+#def solicitarNivelAceite(message):
+ #       try:
+  #          #Validar si el mécanico corresponde a la placa ingresada
+   #         if (LiqudosRepuestos.validarMecanicoPlaca(message)) == False:
+    #            LiqudosRepuestos.mostrarMenuPrincipal(message, bot, types, "No se puede realizar el registro debido a que el mecanico ingresado no tiene asignado el vehículo, selecciona una opción:")
+     #       else:
+      #          #Persiste la respuesta ingresada por el usuario y retorna la respuesta
+       #         respuesta =  LiqudosRepuestos.solicitarDatos(message, bot, 'Ingresa por favor el nivel de aceite del vehículo', 'cedulaMecanico')
+        #        
+         #       #Se llama al metodo register_next_step_handler para continuar con la conversación 
+          #      bot.register_next_step_handler(respuesta, solicitarNivelLiquidosFreno)
+#
+ #       except Exception as e:
+  #          bot.reply_to(message, f"Algo terrible sucedió: {e}")  
+
+## fin código Laura ##
 
 @bot.message_handler(regexp="Históricos")
 def manejarHistoricos(message):

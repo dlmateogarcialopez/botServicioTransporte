@@ -4,6 +4,9 @@ import os
 import sys
 informacion_vehiculo = {}
 vehiculos_registrados = []
+
+mi_path = "placas.txt"
+
 class Vehiculo:
 
     def __init__(self):
@@ -81,6 +84,10 @@ class Vehiculo:
 
             #Almacenar información del vehículo
             vehiculos_registrados.append(record)
+
+            with open(mi_path, 'a+') as f:
+                f.write(record.placaVehiculo.upper() + '\n')
+
             bot.reply_to(data, 'Registro exitoso')
 
     #Buscar mecánico disponible para ser asignado
