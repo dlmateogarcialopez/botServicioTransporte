@@ -4,6 +4,8 @@ from telebot import types
 from time import sleep
 from vehiculo.registrarDatosVehiculo import Vehiculo
 from liquidosRepuestos.registrarLiquidosRepuestos import LiqudosRepuestos
+from historicos.consultarHistoricos import ConsultarHistorico
+
 ######################################################### ###sqlalquemy
 
 # Enable saving next step handlers to file "./.handlers-saves/step.save".
@@ -213,27 +215,67 @@ def solicitarCedulaMecanico(message):
         except Exception as e:
             bot.reply_to(message, f"Algo terrible sucedió: {e}")  
 
-
-#def solicitarNivelAceite(message):
- #       try:
-  #          #Validar si el mécanico corresponde a la placa ingresada
-   #         if (LiqudosRepuestos.validarMecanicoPlaca(message)) == False:
-    #            LiqudosRepuestos.mostrarMenuPrincipal(message, bot, types, "No se puede realizar el registro debido a que el mecanico ingresado no tiene asignado el vehículo, selecciona una opción:")
-     #       else:
-      #          #Persiste la respuesta ingresada por el usuario y retorna la respuesta
-       #         respuesta =  LiqudosRepuestos.solicitarDatos(message, bot, 'Ingresa por favor el nivel de aceite del vehículo', 'cedulaMecanico')
-        #        
-         #       #Se llama al metodo register_next_step_handler para continuar con la conversación 
-          #      bot.register_next_step_handler(respuesta, solicitarNivelLiquidosFreno)
-#
- #       except Exception as e:
-  #          bot.reply_to(message, f"Algo terrible sucedió: {e}")  
-
 ## fin código Laura ##
+
+
+## inicio código Laura ##
 
 @bot.message_handler(regexp="Históricos")
 def manejarHistoricos(message):
-    bot.send_message(message.chat.id, 'Históricos')
+    markup = types.ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
+
+    itembtn1 = types.KeyboardButton('Histórico de líquidos')
+    itembtn2 = types.KeyboardButton('Histórico de Repuestos')
+
+    markup.row(itembtn1)
+    markup.row(itembtn2)
+    
+    bot.send_message(message.chat.id, "Selecciona la opción del historico que desea:", reply_markup=markup)   
+
+#Metodo para realizar la consulta del Histórico de líquidos
+@bot.message_handler(regexp="Histórico de líquidos")
+def historicoLiquidos(message):
+        try:
+            respuesta = bot.send_message(message.chat.id, 'Ingresa por favor la placa del vehículo a consultar')
+            bot.register_next_step_handler(respuesta, solicitarCedulaMecanicoPropietarioLiquidos)
+        except Exception as e:
+            bot.reply_to(message, f"Algo terrible sucedió: {e}")   
+
+#Metodo para realizar la consulta del Histórico de Repuestos
+@bot.message_handler(regexp="Histórico de Repuestos")
+def historicoRepuestos(message):
+        try:
+            respuesta = bot.send_message(message.chat.id, 'Ingresa por favor la placa del vehículo a consultar')
+            bot.register_next_step_handler(respuesta, solicitarCedulaMecanicoPropietarioRepuestos)
+        except Exception as e:
+            bot.reply_to(message, f"Algo terrible sucedió: {e}")   
+
+
+def solicitarCedulaMecanicoPropietarioLiquidos(message):
+        try:
+            #Validar si la placa ingresada, existe en el sistema
+            if (ConsultarHistorico.validarExistenciaPlaca(message)) == False:
+                ConsultarHistorico.mostrarMenuPrincipal(message, bot, types, "No se puede realizar la consulta debido a que la placa no está en el sistema, selecciona una opción:")
+            else:
+                #Persiste la respuesta ingresada por el usuario y retorna la respuesta
+                respuesta =  ConsultarHistorico.solicitarCedulaMecanicoPopietarioLiquidos(message, bot)
+        except Exception as e:
+            bot.reply_to(message, f"Algo terrible sucedió: {e}")  
+
+def solicitarCedulaMecanicoPropietarioRepuestos(message):
+        try:
+            #Validar si la placa ingresada, existe en el sistema
+            if (ConsultarHistorico.validarExistenciaPlaca(message)) == False:
+                ConsultarHistorico.mostrarMenuPrincipal(message, bot, types, "No se puede realizar la consulta debido a que la placa no está en el sistema, selecciona una opción:")
+            else:
+                #Persiste la respuesta ingresada por el usuario y retorna la respuesta
+                respuesta =  ConsultarHistorico.solicitarCedulaMecanicoPopietarioRepuestos(message, bot)
+        except Exception as e:
+            bot.reply_to(message, f"Algo terrible sucedió: {e}")  
+
+
+## fin código Laura ##
+
 
 @bot.message_handler(regexp="Seguros")
 def manejarSeguros(message):

@@ -35,7 +35,7 @@ class LiqudosRepuestos:
     def mostrarMenuPrincipal(data, bot, types, msg):
             markup = types.ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
 
-            itembtn1 = types.KeyboardButton('Registrar datos de vehiculo')
+            itembtn1 = types.KeyboardButton('Registrar datos de vehículo')
             itembtn2 = types.KeyboardButton('Registrar líquidos y repuestos')
             itembtn3 = types.KeyboardButton('Históricos')
             itembtn4 = types.KeyboardButton('Seguros')
