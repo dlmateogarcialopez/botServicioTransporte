@@ -4,6 +4,8 @@ from telebot import types
 from time import sleep
 from vehiculo.registrarDatosVehiculo import Vehiculo
 from seguros.registrarSeguros import Seguro
+from liquidosRepuestos.registrarLiquidosRepuestos import LiqudosRepuestos
+from historicos.consultarHistoricos import ConsultarHistorico
 ######################################################### ###sqlalquemy
 
 # Enable saving next step handlers to file "./.handlers-saves/step.save".
@@ -18,7 +20,7 @@ bot.load_next_step_handlers()
 def manejarMenuPrincipal(message):
     markup = types.ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
 
-    itembtn1 = types.KeyboardButton('Registrar datos de vehiculo')
+    itembtn1 = types.KeyboardButton('Registrar datos')
     itembtn2 = types.KeyboardButton('Registrar líquidos y repuestos')
     itembtn3 = types.KeyboardButton('Históricos')
     itembtn4 = types.KeyboardButton('Seguros')
@@ -31,169 +33,108 @@ def manejarMenuPrincipal(message):
     
     bot.send_message(message.chat.id, "Selecciona una opción del menú:", reply_markup=markup)
 
-@bot.message_handler(regexp="Registrar datos de vehiculo")
+@bot.message_handler(regexp="Registrar datos")
 def solicitarDocumentoPropietario(message):
     respuesta = bot.send_message(message.chat.id, 'Ingresa por favor el documento del propietario del vehículo')
-    bot.register_next_step_handler(respuesta, validarDocumentoPropietario)
-
-
-def validarDocumentoPropietario(message):
-    #Validar si el documento del propietario ya existe, si ya existe se le pregunta al usuario si desea seguir con los datos ya existente o si desea continuar con un registro nuevo de usuario diferente
-    existeVehiculo = Vehiculo.validarExistenciaDocumento(message)
-    if existeVehiculo == True:
-        Vehiculo.validarOpcionDeRegistro(bot, types, message)
-    else:
-        solicitarCorreoElectronicoPropietario(message)
+    bot.register_next_step_handler(respuesta, Vehiculo.validarDocumentoPropietario)
 
 
 @bot.message_handler(regexp="Continuar con el registro actual")
 def solicitarDocumentoPropietario(message): 
         Vehiculo.enviarAccionEscribiendo(message, bot)   
         placaVehiculo = bot.send_message(message.chat.id, 'Ingresa por favor la placa del vehículo')
-        bot.register_next_step_handler(placaVehiculo, solicitarDescripcionVehiculo)
+        bot.register_next_step_handler(placaVehiculo, Vehiculo.solicitarDescripcionVehiculo)
+          
 
-
-def solicitarCorreoElectronicoPropietario(message):
-    try:
-        #Persiste la respuesta ingresada por el usuario y retorna la respuesta
-        respuesta = Vehiculo.solicitarCorreoElectronico(message, bot)     
-
-        #Se llama al metodo register_next_step_handler para continuar con la conversación 
-        bot.register_next_step_handler(respuesta, solicitarNombrePropietario)
-    except Exception as e:
-        bot.reply_to(message, f"Algo terrible sucedió: {e}")
-
-def solicitarNombrePropietario(message):
-        try:
-
-            if Vehiculo.validarExistenciaCorreoElectronico(message):
-                Vehiculo.mostrarMenuPrincipal(message, bot, types, "No se puede realizar el registro debido a que el vehículo ya existe en el sistema, selecciona una opción:")
-            else:
-                #Persiste la respuesta ingresada por el usuario y retorna la respuesta
-                respuesta =  Vehiculo.solicitarDatos(message, bot, 'Ingresa por favor el nombre del propietario del vehículo', 'correoPropietario')
-                
-                #Se llama al metodo register_next_step_handler para continuar con la conversación 
-                bot.register_next_step_handler(respuesta, solicitarPlacaVehiculo)
-
-
-        except Exception as e:
-            bot.reply_to(message, f"Algo terrible sucedió: {e}")
-
-def solicitarPlacaVehiculo(message):
-        try:
-            #Persiste la respuesta ingresada por el usuario y retorna la respuesta
-            respuesta =  Vehiculo.solicitarDatos(message, bot, 'Ingresa por favor la placa del vehículo', 'nombrePropietario')
-            
-            #Se llama al metodo register_next_step_handler para continuar con la conversación 
-            bot.register_next_step_handler(respuesta, solicitarDescripcionVehiculo)
-        except Exception as e:
-            bot.reply_to(message, f"Algo terrible sucedió: {e}")
-
-def solicitarDescripcionVehiculo(message):
-        try:
-
-            #Validar si la placa del vehiculo que se quiere registrar, ya existe en el sistema
-            if(Vehiculo.validarExistenciaPlaca(message)):
-                Vehiculo.mostrarMenuPrincipal(message, bot, types, "No se puede realizar el registro debido a que el correo ya existe en el sistema, selecciona una opción:")
-            else:
-                #Persiste la respuesta ingresada por el usuario y retorna la respuesta
-                respuesta =  Vehiculo.solicitarDatos(message, bot, 'Ingresa por favor la descripción del vehículo', 'placaVehiculo')
-                
-                #Se llama al metodo register_next_step_handler para continuar con la conversación 
-                bot.register_next_step_handler(respuesta, solicitarNivelAceiteVehiculo)
-
-        except Exception as e:
-            bot.reply_to(message, f"Algo terrible sucedió: {e}")   
-
-def solicitarNivelAceiteVehiculo(message):
-        try:
-            #Persiste la respuesta ingresada por el usuario y retorna la respuesta
-            respuesta =  Vehiculo.solicitarDatos(message, bot, 'Ingresa por favor el nivel de aceite del vehículo', 'descripcioVehiculo')
-            
-            #Se llama al metodo register_next_step_handler para continuar con la conversación 
-            bot.register_next_step_handler(respuesta, solicitarNivelLiquidoVehiculo)
-        except Exception as e:
-            bot.reply_to(message, f"Algo terrible sucedió: {e}")     
-
-def solicitarNivelLiquidoVehiculo(message):
-        try:
-            #Persiste la respuesta ingresada por el usuario y retorna la respuesta
-            respuesta =  Vehiculo.solicitarDatos(message, bot, 'Ingresa por favor el nivel de líquido del vehículo', 'nivelAceite')
-            
-            #Se llama al metodo register_next_step_handler para continuar con la conversación 
-            bot.register_next_step_handler(respuesta, solicitarNivelRefrigeranteVehiculo)
-        except Exception as e:
-            bot.reply_to(message, f"Algo terrible sucedió: {e}")        
-
-def solicitarNivelRefrigeranteVehiculo(message):
-        try:
-            #Persiste la respuesta ingresada por el usuario y retorna la respuesta
-            respuesta =  Vehiculo.solicitarDatos(message, bot, 'Ingresa por favor el nivel de refrigerante del vehículo', 'nivelLiquidoFrenos')
-            
-            #Se llama al metodo register_next_step_handler para continuar con la conversación 
-            bot.register_next_step_handler(respuesta, solicitarNivelLiquidoDireccionVehiculo)
-        except Exception as e:
-            bot.reply_to(message, f"Algo terrible sucedió: {e}") 
-
-def solicitarNivelLiquidoDireccionVehiculo(message):
-        try:
-            #Persiste la respuesta ingresada por el usuario y retorna la respuesta
-            respuesta =  Vehiculo.solicitarDatos(message, bot, 'Ingresa por favor el nivel de líquido de dirección del vehículo', 'nivelRefrigerante')
-            
-            #Se llama al metodo register_next_step_handler para continuar con la conversación 
-            bot.register_next_step_handler(respuesta, solicitarFotoSoatVehiculo)
-        except Exception as e:
-            bot.reply_to(message, f"Algo terrible sucedió: {e}")  
-
-def solicitarFotoSoatVehiculo(message):
-        try:
-            #Persiste la respuesta ingresada por el usuario y retorna la respuesta
-            respuesta =  Vehiculo.solicitarDatos(message, bot, 'Ingresa por favor la foto del soat del vehículo', 'nivelLiquidoDireccion')
-            
-            #Se llama al metodo register_next_step_handler para continuar con la conversación 
-            bot.register_next_step_handler(respuesta, solicitarFotoSegurocontractualVehiculo)
-        except Exception as e:
-            bot.reply_to(message, f"Algo terrible sucedió: {e}")   
-
-def solicitarFotoSegurocontractualVehiculo(message):
-        try:
-            #Persiste la respuesta ingresada por el usuario y retorna la respuesta
-            respuesta =  Vehiculo.solicitarDatos(message, bot, 'Ingresa por favor la foto del seguro contractual del vehículo', 'soat')
-            
-            #Se llama al metodo register_next_step_handler para continuar con la conversación 
-            bot.register_next_step_handler(respuesta, solicitarFotoSeguroExtracontractualVehiculo)
-        except Exception as e:
-            bot.reply_to(message, f"Algo terrible sucedió: {e}")    
-
-def solicitarFotoSeguroExtracontractualVehiculo(message):
-        try:
-            #Persiste la respuesta ingresada por el usuario y retorna la respuesta
-            respuesta =  Vehiculo.solicitarDatos(message, bot, 'Ingresa por favor la foto del seguro extracontractual del vehículo', 'seguroContractual')
-
-            #Se llama al metodo register_next_step_handler para continuar con la conversación 
-            bot.register_next_step_handler(respuesta, almacenarDatosDeVehiculo)
-        except Exception as e:
-            bot.reply_to(message, f"Algo terrible sucedió: {e}")     
-
-def almacenarDatosDeVehiculo(message):
-        try:
-
-            #almacenar respuesta tota, en la base de datos
-            Vehiculo.almacenarDatosVehiculo(message, bot)
-            
-        except Exception as e:
-            bot.reply_to(message, f"Algo terrible sucedió: {e}")              
-
+## inicio código Laura ##
 
 @bot.message_handler(regexp="Registrar líquidos y repuestos")
 def manejarRegistroLiquidosRepuestos(message):
-    bot.send_message(message.chat.id, 'Registrar líquidos y repuestos')
+    LiqudosRepuestos.enviarAccionEscribiendo(message, bot)   
+    respuesta = bot.send_message(message.chat.id, 'Ingresa por favor la placa del vehículo al cual le va a registrar líquidos y repuestos')
+
+    #respuesta = LiqudosRepuestos.solicitarPlaca(message, bot)     
+    bot.register_next_step_handler(respuesta, solicitarCedulaMecanico)
+  
+## fin código Laura ##
+
+## inicio código Laura ##
+def solicitarCedulaMecanico(message):
+        try:
+            #Validar si la placa ingresada, existe en el sistema
+            if (LiqudosRepuestos.validarExistenciaPlaca(message)) == False:
+                LiqudosRepuestos.mostrarMenuPrincipal(message, bot, types, "No se puede realizar el registro debido a que la placa no está en el sistema, selecciona una opción:")
+            else:
+                #Persiste la respuesta ingresada por el usuario y retorna la respuesta
+                respuesta =  LiqudosRepuestos.solicitarCedulaMecanico(message, bot)
+                
+                #Se llama al metodo register_next_step_handler para continuar con la conversación 
+                #bot.register_next_step_handler(respuesta, solicitarNivelAceite)
+
+        except Exception as e:
+            bot.reply_to(message, f"Algo terrible sucedió: {e}")  
+
+## fin código Laura ##
+
+## inicio código Laura ##
 
 @bot.message_handler(regexp="Históricos")
 def manejarHistoricos(message):
-    bot.send_message(message.chat.id, 'Históricos')
+    markup = types.ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
 
-###############################################################################################################################################################################
+    itembtn1 = types.KeyboardButton('Histórico de líquidos')
+    itembtn2 = types.KeyboardButton('Histórico de Repuestos')
+
+    markup.row(itembtn1)
+    markup.row(itembtn2)
+    
+    bot.send_message(message.chat.id, "Selecciona la opción del historico que desea:", reply_markup=markup)   
+
+#Metodo para realizar la consulta del Histórico de líquidos
+@bot.message_handler(regexp="Histórico de líquidos")
+def historicoLiquidos(message):
+        try:
+            respuesta = bot.send_message(message.chat.id, 'Ingresa por favor la placa del vehículo a consultar')
+            bot.register_next_step_handler(respuesta, solicitarCedulaMecanicoPropietarioLiquidos)
+        except Exception as e:
+            bot.reply_to(message, f"Algo terrible sucedió: {e}")   
+
+#Metodo para realizar la consulta del Histórico de Repuestos
+@bot.message_handler(regexp="Histórico de Repuestos")
+def historicoRepuestos(message):
+        try:
+            respuesta = bot.send_message(message.chat.id, 'Ingresa por favor la placa del vehículo a consultar')
+            bot.register_next_step_handler(respuesta, solicitarCedulaMecanicoPropietarioRepuestos)
+        except Exception as e:
+            bot.reply_to(message, f"Algo terrible sucedió: {e}")   
+
+
+def solicitarCedulaMecanicoPropietarioLiquidos(message):
+        try:
+            #Validar si la placa ingresada, existe en el sistema
+            if (ConsultarHistorico.validarExistenciaPlaca(message)) == False:
+                ConsultarHistorico.mostrarMenuPrincipal(message, bot, types, "No se puede realizar la consulta debido a que la placa no está en el sistema, selecciona una opción:")
+            else:
+                #Persiste la respuesta ingresada por el usuario y retorna la respuesta
+                respuesta =  ConsultarHistorico.solicitarCedulaMecanicoPopietarioLiquidos(message, bot)
+        except Exception as e:
+            bot.reply_to(message, f"Algo terrible sucedió: {e}")  
+
+def solicitarCedulaMecanicoPropietarioRepuestos(message):
+        try:
+            #Validar si la placa ingresada, existe en el sistema
+            if (ConsultarHistorico.validarExistenciaPlaca(message)) == False:
+                ConsultarHistorico.mostrarMenuPrincipal(message, bot, types, "No se puede realizar la consulta debido a que la placa no está en el sistema, selecciona una opción:")
+            else:
+                #Persiste la respuesta ingresada por el usuario y retorna la respuesta
+                respuesta =  ConsultarHistorico.solicitarCedulaMecanicoPopietarioRepuestos(message, bot)
+        except Exception as e:
+            bot.reply_to(message, f"Algo terrible sucedió: {e}")  
+
+
+## fin código Laura ##
+
+## inicio código Mateo ##
 @bot.message_handler(regexp="Seguros")
 def manejarSeguros(message):
         markup = types.ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
@@ -226,7 +167,7 @@ def consultarSeguros(message):
             bot.reply_to(message, f"Algo terrible sucedió: {e}") 
                   
 
-###############################################################################################################################################################################
+## fin código Mateo ##
 
 @bot.message_handler(func=lambda message: True)
 def fallback(message):

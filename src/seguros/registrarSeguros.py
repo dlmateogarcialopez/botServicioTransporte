@@ -1,20 +1,24 @@
-#from seguros.vehiculosRegistradosTmp import vehiculos_registrados
-from vehiculo.registrarDatosVehiculo import vehiculos_registrados
+#from vehiculo.registrarDatosVehiculo import vehiculos_registrados
+#from database.persistencia import vehiculos_registrados
 from telebot import types
 from config import bot
+from seguros.segurosdb import SeguroDb
+from seguros.implementaciones import LectorFuenteDatos
 placa = {'placa':'sinPlaca'}
 placaConsulta = {'placa':'sinPlaca'}
 seguros = {}
+segurooDb = SeguroDb(LectorFuenteDatos())
 class Seguro:
     def __init__(self):
-        ...
+        ...        
 
     def validarPlacaVehiculoRegistro(message):
         try:
             existeVehiculo = 0
-            for vehiculo in vehiculos_registrados:     
-                if vehiculos_registrados[vehiculo]['placaVehiculo'] == message.text:
-                    placa['placa'] = vehiculos_registrados[vehiculo]['placaVehiculo']
+            vehiculos = segurooDb.consultarSeguros()
+            for vehiculo in vehiculos:     
+                if vehiculo.placaVehiculo == message.text:
+                    placa['placa'] = vehiculo.placaVehiculo
                     existeVehiculo = existeVehiculo + 1
 
             #Validar si la placa existe, en caso de que si exista, se continúa con el registro, de lo contrario no se seguirá con el registro y se mostrará el menú principal
@@ -58,7 +62,7 @@ class Seguro:
             #Almacenar temporalmente el seguro Contractual en el diccionario
             seguros['seguroContractual'] = message.text
             
-            respuesta = bot.send_message(message.chat.id, 'Ingresa por favor el seguro contractual')
+            respuesta = bot.send_message(message.chat.id, 'Ingresa por favor el seguro extracontractual')
             bot.register_next_step_handler(respuesta, Seguro.almacenarSeguroContraExtractual)
         except Exception as e:
             bot.reply_to(message, f"Algo terrible sucedió: {e}")      
@@ -71,11 +75,12 @@ class Seguro:
 
             #validar si el diccionario "seguros" esta completo, para poder realizar la actualización de los seguros
             if len(seguros) == 3:
-                for carro in vehiculos_registrados:
-                    if vehiculos_registrados[carro]['placaVehiculo'] == placa['placa']:
-                        vehiculos_registrados[carro]['soat'] = seguros['soat']
-                        vehiculos_registrados[carro]['seguroContractual'] = seguros['seguroContractual']
-                        vehiculos_registrados[carro]['seguroExtraContrActual'] = seguros['seguroExtraContrActual']
+                vehiculos = segurooDb.consultarSeguros()
+                for carro in vehiculos:
+                    if carro.placaVehiculo == placa['placa']:
+                        carro.soat = seguros['soat']
+                        carro.seguroContractual = seguros['seguroContractual']
+                        carro.seguroExtraContrActual = seguros['seguroExtraContrActual']
                         placa['placa'] = 'sinPlaca'
                         break
             bot.reply_to(message, 'Registro exitoso de los seguros')
@@ -86,15 +91,17 @@ class Seguro:
       
     #Validar si la placa está en el sistema para consultar el documento del propietario o mecánico
     def validarPlacaVehiculoConsulta(message):
-        try:
-            if len(vehiculos_registrados) > 0:
-                for vehiculo in vehiculos_registrados:     
+        try:            
+            vehiculos = segurooDb.consultarSeguros()
+            if len(vehiculos) > 0:
+                for vehiculo in vehiculos:     
                     if vehiculo.placaVehiculo == message.text:
                         placaConsulta['placa'] = message.text
                         respuesta = bot.send_message(message.chat.id, 'Ingresa por favor el documento del mecánico o del propietario')                        
                         bot.register_next_step_handler(respuesta, Seguro.validarDocumento)
 
                         return
+                Seguro.mostrarMenuPrincipal(message, bot, types, "No se encontró un vehículo con la placa ingresada, selecciona una opción:")
             else:
                 Seguro.mostrarMenuPrincipal(message, bot, types, "No se encontró un vehículo con la placa ingresada, selecciona una opción:")
 
@@ -111,9 +118,12 @@ class Seguro:
             bot.reply_to(message, f"Algo terrible sucedió: {e}") 
 
     def validarDocumento(message):
-        if len(vehiculos_registrados) > 0:
-            for vehiculo in vehiculos_registrados:     
-                if vehiculo.placaVehiculo == placaConsulta['placa'] and (vehiculo.mecanicoAsignado == message.text or vehiculo.documentoPopietario == message.text):
+        vehiculos = segurooDb.consultarSeguros()
+        if len(vehiculos) > 0:
+            vehiculo = segurooDb.consultarSeguro(placaConsulta['placa'], message.text)
+            if(vehiculo == False):
+                Seguro.mostrarMenuPrincipal(message, bot, types, "No existe un vehículo con los datos proporcionados, selecciona una opción:")
+            else:
                     placaConsulta['placa'] = 'sinPlaca'
                     #mensaje que se le envia a l usuario para mostrar la información de los seguros
                     bot.send_message(message.chat.id, f"Los últimos seguros registrados para el vehículo con placas {vehiculo.placaVehiculo} son: \nSOAT: {vehiculo.soat} \nSeguro contractual: {vehiculo.seguroContractual} \nSeguro extracontractual: {vehiculo.seguroExtraContrActual}")

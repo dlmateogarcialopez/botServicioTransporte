@@ -2,8 +2,15 @@ from time import sleep
 import json
 import os
 import sys
+from telebot import types
+from config import bot
+from vehiculo.vehiculoDb import VehiculoDb
+from vehiculo.implementaciones import LectorFuenteDatos
 informacion_vehiculo = {} #Almacenar información temporal de vehiculo que se registra
-vehiculos_registrados = [] #Almacenar todos los vehículos que se van registrando en el bot
+#vehiculos_registrados = [] #Almacenar todos los vehículos que se van registrando en el bot
+vehiculoDb = VehiculoDb(LectorFuenteDatos())
+mi_path = "placas.txt"
+
 class Vehiculo:
 
     def __init__(self):
@@ -80,7 +87,12 @@ class Vehiculo:
             record.mecanicoAsignado = mecanicoAsignado
 
             #Almacenar información del vehículo
-            vehiculos_registrados.append(record)
+            #vehiculos_registrados.append(record)
+            vehiculoDb.guardarVehiculo(record)
+
+            with open(mi_path, 'a+') as f:
+                f.write(record.placaVehiculo.upper() + '\n')
+
             bot.reply_to(data, 'Registro exitoso')
 
     #Buscar mecánico disponible para ser asignado
@@ -95,7 +107,8 @@ class Vehiculo:
 
 
     def validarExistenciaDocumento(data):
-        for vehiculo in vehiculos_registrados:
+        vehiculos = vehiculoDb.consultarVehiculos()
+        for vehiculo in vehiculos:
             if vehiculo.documentoPopietario == data.text:
 
                 record = Record()
@@ -111,13 +124,15 @@ class Vehiculo:
         return False
 
     def validarExistenciaPlaca(data):
-        for vehiculo in vehiculos_registrados:
+        vehiculos = vehiculoDb.consultarVehiculos()
+        for vehiculo in vehiculos:
             if vehiculo.placaVehiculo == data.text:
                 return True
         return False 
 
     def validarExistenciaCorreoElectronico(data):
-        for vehiculo in vehiculos_registrados:
+        vehiculos = vehiculoDb.consultarVehiculos()
+        for vehiculo in vehiculos:
             if vehiculo.correoPropietario == data.text:
                 return True
         return False            
@@ -125,7 +140,7 @@ class Vehiculo:
     def mostrarMenuPrincipal(data, bot, types, msg):
             markup = types.ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
 
-            itembtn1 = types.KeyboardButton('Registrar datos de vehiculo')
+            itembtn1 = types.KeyboardButton('Registrar datos')
             itembtn2 = types.KeyboardButton('Registrar líquidos y repuestos')
             itembtn3 = types.KeyboardButton('Históricos')
             itembtn4 = types.KeyboardButton('Seguros')
@@ -141,13 +156,13 @@ class Vehiculo:
     def validarOpcionDeRegistro(bot, types, message):
         markup = types.ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
 
-        itembtn1 = types.KeyboardButton('Registrar datos de vehiculo')
+        itembtn1 = types.KeyboardButton('Registrar datos')
         itembtn2 = types.KeyboardButton('Continuar con el registro actual')
 
         markup.row(itembtn1)
         markup.row(itembtn2)
     
-        bot.send_message(message.chat.id, "Este número de documento ya existe en el sistema, ¿te gustaría continuar el registro del vehículo con los datos almacenados o te gustaría realizar un nuevo registro ?:", reply_markup=markup)
+        bot.send_message(message.chat.id, "Este número de documento ya existe en el sistema, ¿te gustaría continuar el registro del vehículo con los datos almacenados o te gustaría realizar un nuevo registro ?", reply_markup=markup)
 
     def validarDatosCompletos(data):
 
@@ -188,6 +203,145 @@ class Vehiculo:
             return False
 
         return True
+
+    def validarDocumentoPropietario(message):
+        #Validar si el documento del propietario ya existe, si ya existe se le pregunta al usuario si desea seguir con los datos ya existente o si desea continuar con un registro nuevo de usuario diferente
+        existeVehiculo = Vehiculo.validarExistenciaDocumento(message)
+        if existeVehiculo == True:
+            Vehiculo.validarOpcionDeRegistro(bot, types, message)
+        else:
+            Vehiculo.solicitarCorreoElectronicoPropietario(message)
+
+    def solicitarCorreoElectronicoPropietario(message):
+        try:
+            #Persiste la respuesta ingresada por el usuario y retorna la respuesta
+            respuesta = Vehiculo.solicitarCorreoElectronico(message, bot)     
+
+            #Se llama al metodo register_next_step_handler para continuar con la conversación 
+            bot.register_next_step_handler(respuesta, Vehiculo.solicitarNombrePropietario)
+        except Exception as e:
+            bot.reply_to(message, f"Algo terrible sucedió: {e}")
+
+    def solicitarNombrePropietario(message):
+        try:
+
+            if Vehiculo.validarExistenciaCorreoElectronico(message):
+                Vehiculo.mostrarMenuPrincipal(message, bot, types, "No se puede realizar el registro debido a que el correo ya existe en el sistema, selecciona una opción:")
+            else:
+                #Persiste la respuesta ingresada por el usuario y retorna la respuesta
+                respuesta =  Vehiculo.solicitarDatos(message, bot, 'Ingresa por favor el nombre del propietario del vehículo', 'correoPropietario')
+                
+                #Se llama al metodo register_next_step_handler para continuar con la conversación 
+                bot.register_next_step_handler(respuesta, Vehiculo.solicitarPlacaVehiculo)
+
+
+        except Exception as e:
+            bot.reply_to(message, f"Algo terrible sucedió: {e}")
+
+    def solicitarPlacaVehiculo(message):
+        try:
+            #Persiste la respuesta ingresada por el usuario y retorna la respuesta
+            respuesta =  Vehiculo.solicitarDatos(message, bot, 'Ingresa por favor la placa del vehículo', 'nombrePropietario')
+            
+            #Se llama al metodo register_next_step_handler para continuar con la conversación 
+            bot.register_next_step_handler(respuesta, Vehiculo.solicitarDescripcionVehiculo)
+        except Exception as e:
+            bot.reply_to(message, f"Algo terrible sucedió: {e}")
+
+    def solicitarDescripcionVehiculo(message):
+        try:
+
+            #Validar si la placa del vehiculo que se quiere registrar, ya existe en el sistema
+            if(Vehiculo.validarExistenciaPlaca(message)):
+                Vehiculo.mostrarMenuPrincipal(message, bot, types, "No se puede realizar el registro debido a que la placa ya existe en el sistema, selecciona una opción:")
+            else:
+                #Persiste la respuesta ingresada por el usuario y retorna la respuesta
+                respuesta =  Vehiculo.solicitarDatos(message, bot, 'Ingresa por favor la descripción del vehículo', 'placaVehiculo')
+                
+                #Se llama al metodo register_next_step_handler para continuar con la conversación 
+                bot.register_next_step_handler(respuesta, Vehiculo.solicitarNivelAceiteVehiculo)
+
+        except Exception as e:
+            bot.reply_to(message, f"Algo terrible sucedió: {e}")   
+
+    def solicitarNivelAceiteVehiculo(message):
+        try:
+            #Persiste la respuesta ingresada por el usuario y retorna la respuesta
+            respuesta =  Vehiculo.solicitarDatos(message, bot, 'Ingresa por favor el nivel de aceite del vehículo', 'descripcioVehiculo')
+            
+            #Se llama al metodo register_next_step_handler para continuar con la conversación 
+            bot.register_next_step_handler(respuesta, Vehiculo.solicitarNivelLiquidoVehiculo)
+        except Exception as e:
+            bot.reply_to(message, f"Algo terrible sucedió: {e}")   
+
+    def solicitarNivelLiquidoVehiculo(message):
+        try:
+            #Persiste la respuesta ingresada por el usuario y retorna la respuesta
+            respuesta =  Vehiculo.solicitarDatos(message, bot, 'Ingresa por favor el nivel de líquido del vehículo', 'nivelAceite')
+            
+            #Se llama al metodo register_next_step_handler para continuar con la conversación 
+            bot.register_next_step_handler(respuesta, Vehiculo.solicitarNivelRefrigeranteVehiculo)
+        except Exception as e:
+            bot.reply_to(message, f"Algo terrible sucedió: {e}")  
+
+    def solicitarNivelRefrigeranteVehiculo(message):
+        try:
+            #Persiste la respuesta ingresada por el usuario y retorna la respuesta
+            respuesta =  Vehiculo.solicitarDatos(message, bot, 'Ingresa por favor el nivel de refrigerante del vehículo', 'nivelLiquidoFrenos')
+            
+            #Se llama al metodo register_next_step_handler para continuar con la conversación 
+            bot.register_next_step_handler(respuesta, Vehiculo.solicitarNivelLiquidoDireccionVehiculo)
+        except Exception as e:
+            bot.reply_to(message, f"Algo terrible sucedió: {e}") 
+
+    def solicitarNivelLiquidoDireccionVehiculo(message):
+        try:
+            #Persiste la respuesta ingresada por el usuario y retorna la respuesta
+            respuesta =  Vehiculo.solicitarDatos(message, bot, 'Ingresa por favor el nivel de líquido de dirección del vehículo', 'nivelRefrigerante')
+            
+            #Se llama al metodo register_next_step_handler para continuar con la conversación 
+            bot.register_next_step_handler(respuesta, Vehiculo.solicitarFotoSoatVehiculo)
+        except Exception as e:
+            bot.reply_to(message, f"Algo terrible sucedió: {e}")  
+
+    def solicitarFotoSoatVehiculo(message):
+        try:
+            #Persiste la respuesta ingresada por el usuario y retorna la respuesta
+            respuesta =  Vehiculo.solicitarDatos(message, bot, 'Ingresa por favor el código del soat del vehículo', 'nivelLiquidoDireccion')
+            
+            #Se llama al metodo register_next_step_handler para continuar con la conversación 
+            bot.register_next_step_handler(respuesta, Vehiculo.solicitarFotoSegurocontractualVehiculo)
+        except Exception as e:
+            bot.reply_to(message, f"Algo terrible sucedió: {e}")  
+
+    def solicitarFotoSegurocontractualVehiculo(message):
+        try:
+            #Persiste la respuesta ingresada por el usuario y retorna la respuesta
+            respuesta =  Vehiculo.solicitarDatos(message, bot, 'Ingresa por favor el código del seguro contractual del vehículo', 'soat')
+            
+            #Se llama al metodo register_next_step_handler para continuar con la conversación 
+            bot.register_next_step_handler(respuesta, Vehiculo.solicitarFotoSeguroExtracontractualVehiculo)
+        except Exception as e:
+            bot.reply_to(message, f"Algo terrible sucedió: {e}")
+    
+    def solicitarFotoSeguroExtracontractualVehiculo(message):
+        try:
+            #Persiste la respuesta ingresada por el usuario y retorna la respuesta
+            respuesta =  Vehiculo.solicitarDatos(message, bot, 'Ingresa por favor el código del seguro extracontractual del vehículo', 'seguroContractual')
+
+            #Se llama al metodo register_next_step_handler para continuar con la conversación 
+            bot.register_next_step_handler(respuesta, Vehiculo.almacenarDatosDeVehiculo)
+        except Exception as e:
+            bot.reply_to(message, f"Algo terrible sucedió: {e}")  
+
+    def almacenarDatosDeVehiculo(message):
+        try:
+
+            #almacenar respuesta tota, en la base de datos
+            Vehiculo.almacenarDatosVehiculo(message, bot)
+            
+        except Exception as e:
+            bot.reply_to(message, f"Algo terrible sucedió: {e}")
 
 
 class Record:
