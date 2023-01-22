@@ -3,15 +3,18 @@ import json
 import os
 import sys
 #from vehiculo.registrarDatosVehiculo import vehiculos_registrados
-from database.persistencia import vehiculos_registrados
+#from database.persistencia import vehiculos_registrados
 #from liquidosRepuestos.registrarLiquidosRepuestos import informacion_liquidoRepuestos_registrados
 from database.persistencia import informacion_liquidoRepuestos_registrados
 from telebot import types
 from config import bot
+from historicos.implementaciones import LectorFuenteDatos
+from historicos.historicosDb import HistoricoDb
 
 lista_placas = []
 mi_path = "placas.txt"
 placa_actual = {'placa':'sinPlaca'}
+historicosDb = HistoricoDb(LectorFuenteDatos())
 
 
 class ConsultarHistorico:
@@ -70,15 +73,17 @@ class ConsultarHistorico:
 
 
     def validarMecanicoPropietarioPlacaLiquidos(data):
-        if len(vehiculos_registrados) > 0:           
-            for vehiculo in vehiculos_registrados:
+        vehiculos = historicosDb.consultarVehiculos
+        if len(vehiculos) > 0:           
+            for vehiculo in vehiculos:
                 if vehiculo.placaVehiculo.upper() == placa_actual['placa'] and (vehiculo.mecanicoAsignado == data.text or vehiculo.documentoPopietario == data.text):
                     placa_actual['placa'] = 'sinPlaca'
                     
                     #se muestra la información de la consulta
                     consulta = ""
-                    if len(informacion_liquidoRepuestos_registrados) > 0: 
-                        for registro in informacion_liquidoRepuestos_registrados:
+                    liquidosRepuestos = historicosDb.guardarLiquidosRepuestos()
+                    if len(liquidosRepuestos) > 0: 
+                        for registro in liquidosRepuestos:
                             consulta += f" \nNivel de aceite: {registro.nivelAceite} \nNivel Líquido de frenos: {registro.nivelLiquidoFrenos} \nNivel líquido refrigerante:  {registro.nivelRefrigerante} \nNivel líquido de dirección: {registro.nivelLiquidoDireccion} \n------------------------"
                     else: 
                         consulta= "No existe un histórico de registro de líquidos para el vehículo consultado"
@@ -103,15 +108,17 @@ class ConsultarHistorico:
 
 
     def validarMecanicoPropietarioPlacaRepuestos(data):
-        if len(vehiculos_registrados) > 0:           
-            for vehiculo in vehiculos_registrados:
+        vehiculos = historicosDb.consultarVehiculos()
+        if len(vehiculos) > 0:           
+            for vehiculo in vehiculos:
                 if vehiculo.placaVehiculo.upper() == placa_actual['placa'] and (vehiculo.mecanicoAsignado == data.text or vehiculo.documentoPopietario == data.text):
                     placa_actual['placa'] = 'sinPlaca'
                     
                     #se muestra la información de la consulta
                     consulta = ""
-                    if len(informacion_liquidoRepuestos_registrados) > 0: 
-                        for registro in informacion_liquidoRepuestos_registrados:
+                    liquidosRepuestos = historicosDb.guardarLiquidosRepuestos()
+                    if len(liquidosRepuestos) > 0: 
+                        for registro in liquidosRepuestos:
                             if (registro.cambioRepuestos) != "":
                                 consulta += f" \nCambio de repuestos : {registro.cambioRepuestos} \n------------------------"
                     else: 
