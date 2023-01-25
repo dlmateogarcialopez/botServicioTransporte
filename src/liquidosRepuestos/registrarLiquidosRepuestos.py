@@ -2,19 +2,22 @@ from time import sleep
 import json
 import os
 import sys
-from vehiculo.registrarDatosVehiculo import vehiculos_registrados
+#from vehiculo.registrarDatosVehiculo import vehiculos_registrados
+from database.persistencia import vehiculos_registrados
 from telebot import types
 from config import bot
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import smtplib
-
+from liquidosRepuestos.liquidosRepuestosDb import LiquidosRepuestoDb
+from liquidosRepuestos.implementaciones import LectorFuenteDatos
 
 informacion_liquidoRepuestos = {}
-informacion_liquidoRepuestos_registrados = []
+#informacion_liquidoRepuestos_registrados = []
 lista_placas = []
 mi_path = "placas.txt"
 placa_actual = {'placa':'sinPlaca'}
+liquidosRepuestosDb = LiquidosRepuestoDb(LectorFuenteDatos())
 
 class LiqudosRepuestos:
 
@@ -101,7 +104,8 @@ class LiqudosRepuestos:
         datosCompletos = LiqudosRepuestos.validarDatosCompletos(record)
         if(datosCompletos):           
             #Almacenar información de los liquidos y repuestos
-            informacion_liquidoRepuestos_registrados.append(record)   
+            #informacion_liquidoRepuestos_registrados.append(record)   
+            liquidosRepuestosDb.guardarLiquidosRepuestos(record)
             # Se llama al metódo que notifica al dueño del vevículo
             LiqudosRepuestos.enviarCorreo(data)            
 
@@ -169,8 +173,9 @@ class LiqudosRepuestos:
         #return respuesta
 
     def validarMecanicoPlaca(data):
-        if len(vehiculos_registrados) > 0:           
-            for vehiculo in vehiculos_registrados:
+        vehiculos  = liquidosRepuestosDb.consultarVehiculos()
+        if len(vehiculos) > 0:           
+            for vehiculo in vehiculos:
                 if vehiculo.placaVehiculo.upper() == placa_actual['placa'] and (vehiculo.mecanicoAsignado == data.text):
                     #Persiste la respuesta ingresada por el usuario y retorna la respuesta
                     respuesta =  LiqudosRepuestos.solicitarDatos(data, bot, 'Ingresa por favor el nivel de aceite del vehículo', 'cedulaMecanico')
@@ -233,8 +238,9 @@ class LiqudosRepuestos:
             bot.reply_to(message, f"Algo terrible sucedió: {e}")   
 
     def enviarCorreo(data):
-        if len(vehiculos_registrados) > 0:           
-            for vehiculo in vehiculos_registrados:
+        vehiculos = liquidosRepuestosDb.consultarVehiculos()
+        if len(vehiculos) > 0:           
+            for vehiculo in vehiculos:
                 if vehiculo.placaVehiculo.upper() == placa_actual['placa']:
                     correo = vehiculo.correoPropietario
 
