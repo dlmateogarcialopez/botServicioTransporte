@@ -73,7 +73,7 @@ class ConsultarHistorico:
 
 
     def validarMecanicoPropietarioPlacaLiquidos(data):
-        vehiculos = historicosDb.consultarVehiculos
+        vehiculos = historicosDb.consultarVehiculos()
         if len(vehiculos) > 0:           
             for vehiculo in vehiculos:
                 if vehiculo.placaVehiculo.upper() == placa_actual['placa'] and (vehiculo.mecanicoAsignado == data.text or vehiculo.documentoPopietario == data.text):
