@@ -8,7 +8,7 @@ class HistoricoDb():
 
 
     def consultarVehiculos(self):
-        return self.ihistorico.obtenerVehiculos(self)
+        return self.ihistorico.obtenerVehiculos()
     
     def guardarLiquidosRepuestos(self):
-        return self.ihistorico.obtenerLiqudisoRepuestos(self)
+        return self.ihistorico.obtenerLiqudisoRepuestos()

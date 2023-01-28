@@ -12,7 +12,6 @@ from historicos.implementaciones import LectorFuenteDatos
 from historicos.historicosDb import HistoricoDb
 
 lista_placas = []
-mi_path = "placas.txt"
 placa_actual = {'placa':'sinPlaca'}
 historicosDb = HistoricoDb(LectorFuenteDatos())
 
@@ -23,13 +22,12 @@ class ConsultarHistorico:
         ...
 
     def traerListaVehiculos():
-        #lista_placas = []
-        with open(mi_path, "r") as archivo:
-            #print(archivo.readlines())
+        mi_path = "placas.txt"
+        file_mode = "r"
+        with open(mi_path, file_mode) as archivo:
             for linea in archivo:
                 linea_limpia = linea.rstrip('\n')
                 lista_placas.append(linea_limpia)
-            #lista_placas.append(archivo.readline())
         
     def mostrarMenuPrincipal(data, bot, types, msg):
             markup = types.ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
@@ -43,7 +41,6 @@ class ConsultarHistorico:
             markup.row(itembtn2)
             markup.row(itembtn3)
             markup.row(itembtn4)
-            #markup.add(itembtn1, itembtn2, itembtn3, itembtn4)
         
             bot.send_message(data.chat.id, msg, reply_markup=markup)  
     
@@ -55,10 +52,7 @@ class ConsultarHistorico:
         lista_placas.clear()
         ConsultarHistorico.traerListaVehiculos()
         placa_upper = data.text.upper()
-        if placa_upper in lista_placas:
-            return True
-        else:
-            return False     
+        return True if placa_upper in lista_placas else False
 
 
     def solicitarCedulaMecanicoPopietarioLiquidos(data, bot):
@@ -73,7 +67,7 @@ class ConsultarHistorico:
 
 
     def validarMecanicoPropietarioPlacaLiquidos(data):
-        vehiculos = historicosDb.consultarVehiculos
+        vehiculos = historicosDb.consultarVehiculos()
         if len(vehiculos) > 0:           
             for vehiculo in vehiculos:
                 if vehiculo.placaVehiculo.upper() == placa_actual['placa'] and (vehiculo.mecanicoAsignado == data.text or vehiculo.documentoPopietario == data.text):
@@ -82,7 +76,7 @@ class ConsultarHistorico:
                     #se muestra la información de la consulta
                     consulta = ""
                     liquidosRepuestos = historicosDb.guardarLiquidosRepuestos()
-                    if len(liquidosRepuestos) > 0: 
+                    if liquidosRepuestos: 
                         for registro in liquidosRepuestos:
                             consulta += f" \nNivel de aceite: {registro.nivelAceite} \nNivel Líquido de frenos: {registro.nivelLiquidoFrenos} \nNivel líquido refrigerante:  {registro.nivelRefrigerante} \nNivel líquido de dirección: {registro.nivelLiquidoDireccion} \n------------------------"
                     else: 

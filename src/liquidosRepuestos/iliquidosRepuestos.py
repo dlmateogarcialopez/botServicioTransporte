@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-class ILquidoRepuesto(ABC):
+class ILquidoRepuesto ( ABC ) :
     
     @abstractmethod
     def consultarVehiculos(self) :

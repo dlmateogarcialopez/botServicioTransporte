@@ -2,7 +2,6 @@ from time import sleep
 import json
 import os
 import sys
-#from vehiculo.registrarDatosVehiculo import vehiculos_registrados
 from database.persistencia import vehiculos_registrados
 from telebot import types
 from config import bot
@@ -13,7 +12,6 @@ from liquidosRepuestos.liquidosRepuestosDb import LiquidosRepuestoDb
 from liquidosRepuestos.implementaciones import LectorFuenteDatos
 
 informacion_liquidoRepuestos = {}
-#informacion_liquidoRepuestos_registrados = []
 lista_placas = []
 mi_path = "placas.txt"
 placa_actual = {'placa':'sinPlaca'}
@@ -26,13 +24,10 @@ class LiqudosRepuestos:
         
     
     def traerListaVehiculos():
-        #lista_placas = []
         with open(mi_path, "r") as archivo:
-            #print(archivo.readlines())
             for linea in archivo:
                 linea_limpia = linea.rstrip('\n')
                 lista_placas.append(linea_limpia)
-            #lista_placas.append(archivo.readline())
         
         
     def mostrarMenuPrincipal(data, bot, types, msg):
@@ -47,7 +42,6 @@ class LiqudosRepuestos:
             markup.row(itembtn2)
             markup.row(itembtn3)
             markup.row(itembtn4)
-            #markup.add(itembtn1, itembtn2, itembtn3, itembtn4)
         
             bot.send_message(data.chat.id, msg, reply_markup=markup)  
     
@@ -56,6 +50,7 @@ class LiqudosRepuestos:
             sleep(1)    
 
     def validarExistenciaPlaca(data):
+        print(data)
         lista_placas.clear()
         LiqudosRepuestos.traerListaVehiculos()
         placa_upper = data.text.upper()
@@ -103,8 +98,7 @@ class LiqudosRepuestos:
 
         datosCompletos = LiqudosRepuestos.validarDatosCompletos(record)
         if(datosCompletos):           
-            #Almacenar información de los liquidos y repuestos
-            #informacion_liquidoRepuestos_registrados.append(record)   
+            #Almacenar información de los liquidos y repuestos  
             liquidosRepuestosDb.guardarLiquidosRepuestos(record)
             # Se llama al metódo que notifica al dueño del vevículo
             LiqudosRepuestos.enviarCorreo(data)            
@@ -142,7 +136,6 @@ class LiqudosRepuestos:
         record = Record()
 
         placaVehiculo = data.text.upper()
-        print("acaaa", placaVehiculo)
     
         record.placaVehiculo = placaVehiculo
 
@@ -169,8 +162,6 @@ class LiqudosRepuestos:
         respuesta = bot.send_message(data.chat.id, 'Ingresa por favor el documento del mécanico asignado al vehículo')
         bot.register_next_step_handler(respuesta, LiqudosRepuestos.validarMecanicoPlaca)
 
-        #respuesta = bot.reply_to(data, 'Ingresa por favor el documento del mécanico asignado al vehículo')
-        #return respuesta
 
     def validarMecanicoPlaca(data):
         vehiculos  = liquidosRepuestosDb.consultarVehiculos()
