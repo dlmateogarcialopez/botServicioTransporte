@@ -22,6 +22,7 @@ if __name__ == '__main__':
     if mecanico1 == None:
         account1 = db.Mecanico('10', 'juan', True, 'hqd69f', datetime.now())
         db.session.add(account1)
+        db.session.commit()  
 
     #MECANICO 1
     mecanico2 = db.session.query(db.Mecanico).get("11")
@@ -30,8 +31,9 @@ if __name__ == '__main__':
     if mecanico1 == None: 
         account2 = db.Mecanico('11', 'mateo', False, 'hqd68f', datetime.now())
         db.session.add(account2)
+        db.session.commit()  
 
-    db.session.commit()  
+
 #########################################################
 
 # Enable saving next step handlers to file "./.handlers-saves/step.save".

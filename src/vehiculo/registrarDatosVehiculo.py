@@ -83,8 +83,8 @@ class Vehiculo:
         datosCompletos = Vehiculo.validarDatosCompletos(record)
         if(datosCompletos):
             #Asignar el mecanico al vegiculo   
-            mecanicoAsignado = Vehiculo.seleccionarMecanicoDisponible()         
-            record.mecanicoAsignado = mecanicoAsignado
+            #mecanicoAsignado = Vehiculo.seleccionarMecanicoDisponible()         
+            record.mecanicoAsignado = '10'
 
             #Almacenar información del vehículo
             #vehiculos_registrados.append(record)
@@ -109,7 +109,7 @@ class Vehiculo:
     def validarExistenciaDocumento(data):
         vehiculos = vehiculoDb.consultarVehiculos()
         for vehiculo in vehiculos:
-            if vehiculo.documentoPopietario == data.text:
+            if vehiculo.documentoPropietario == data.text:
 
                 record = Record()
 
@@ -117,8 +117,8 @@ class Vehiculo:
 
                 datosVehiculo = informacion_vehiculo[data.chat.id]
                 datosVehiculo.documentoPopietario = data.text
-                datosVehiculo.correoPropietario = "correo@gmail.com"
-                datosVehiculo.nombrePropietario = "Nombre existente"
+                datosVehiculo.correoPropietario = vehiculo.correoPropietario
+                datosVehiculo.nombrePropietario = vehiculo.nombrePropietario
                 return True
 
         return False
@@ -126,7 +126,7 @@ class Vehiculo:
     def validarExistenciaPlaca(data):
         vehiculos = vehiculoDb.consultarVehiculos()
         for vehiculo in vehiculos:
-            if vehiculo.placaVehiculo == data.text:
+            if vehiculo.placa == data.text:
                 return True
         return False 
 
