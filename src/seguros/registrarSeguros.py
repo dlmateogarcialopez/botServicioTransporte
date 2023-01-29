@@ -63,11 +63,11 @@ class Seguro:
             seguros['seguroContractual'] = message.text
             
             respuesta = bot.send_message(message.chat.id, 'Ingresa por favor el seguro extracontractual')
-            bot.register_next_step_handler(respuesta, Seguro.almacenarSeguroContraExtractual)
+            bot.register_next_step_handler(respuesta, Seguro.almacenarSeguros)
         except Exception as e:
             bot.reply_to(message, f"Algo terrible sucedió: {e}")      
 
-    def almacenarSeguroContraExtractual(message):
+    def almacenarSeguros(message):
         try:
 
             #Almacenar temporalmente el seguro seguro extraContrActual en el diccionario

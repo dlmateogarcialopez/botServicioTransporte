@@ -6,7 +6,14 @@ from vehiculo.registrarDatosVehiculo import Vehiculo
 from seguros.registrarSeguros import Seguro
 from liquidosRepuestos.registrarLiquidosRepuestos import LiqudosRepuestos
 from historicos.consultarHistoricos import ConsultarHistorico
-######################################################### ###sqlalquemy
+import database.db as db
+#########################################################
+
+
+#########################################################
+if __name__ == '__main__':
+    db.Base.metadata.create_all(db.engine)
+#########################################################
 
 # Enable saving next step handlers to file "./.handlers-saves/step.save".
 # Delay=2 means that after any change in next step handlers (e.g. calling register_next_step_handler())
@@ -165,7 +172,29 @@ def consultarSeguros(message):
             bot.register_next_step_handler(respuesta, Seguro.validarPlacaVehiculoConsulta)
         except Exception as e:
             bot.reply_to(message, f"Algo terrible sucedió: {e}") 
+
+
+@bot.message_handler(commands=['help'])
+def mostrarAyuda(message):
+     
+    bot.send_chat_action(message.chat.id, 'typing')
+    sleep(1)
+    response = (
+                "Estos son los comandos y órdenes disponibles para este chat \U0000270D :\n"
+                "\n"
+                "*/start* - Inicia la interacción con el bot y se presentan las opciones disponibles, para seleccionar alguna\n"
+                "*/help* - Muestra este mensaje de ayuda con alguna información sobre las funcionaes y manejo del chat\n"
+                "*Registrar datos* - Permite registrar un nuevo vehículo a la base de datos con toda la información necesaria\n"
+                "*Registrar líquidos y repuestos* - Permite registrar la revisión de líquidos y repuestos de cierto vehículo en específico\n"
+                "*Históricos* - En esta opción se podra tener la opción de Históricos de líquidos (Se permite consultar el histrorial de líquidos registrados para cierto vehículo) e Histórico de repuestos (Se permite consultar el histrorial de repuestos registrados para cierto vehículo)\n"
+                "*Seguros* - Permite actualizar la información de los tres seguros de algún vehículo registrado\n"
+                "\U0001F4AF"
+                )
+    
+    #\U0001F4AF
+    bot.send_message(message.chat.id, response, parse_mode="Markdown")
                   
+
 
 ## fin código Mateo ##
 
