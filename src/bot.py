@@ -7,12 +7,31 @@ from seguros.registrarSeguros import Seguro
 from liquidosRepuestos.registrarLiquidosRepuestos import LiqudosRepuestos
 from historicos.consultarHistoricos import ConsultarHistorico
 import database.db as db
+from datetime import datetime
 #########################################################
 
 
 #########################################################
 if __name__ == '__main__':
     db.Base.metadata.create_all(db.engine)
+
+    #MECANICO 1
+    mecanico1 = db.session.query(db.Mecanico).get("10")
+    db.session.commit()
+
+    if mecanico1 == None:
+        account1 = db.Mecanico('10', 'juan', True, 'hqd69f', datetime.now())
+        db.session.add(account1)
+
+    #MECANICO 1
+    mecanico2 = db.session.query(db.Mecanico).get("11")
+    db.session.commit()
+
+    if mecanico1 == None: 
+        account2 = db.Mecanico('11', 'mateo', False, 'hqd68f', datetime.now())
+        db.session.add(account2)
+
+    db.session.commit()  
 #########################################################
 
 # Enable saving next step handlers to file "./.handlers-saves/step.save".
