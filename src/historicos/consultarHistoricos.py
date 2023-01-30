@@ -5,7 +5,7 @@ import sys
 #from vehiculo.registrarDatosVehiculo import vehiculos_registrados
 #from database.persistencia import vehiculos_registrados
 #from liquidosRepuestos.registrarLiquidosRepuestos import informacion_liquidoRepuestos_registrados
-from database.persistencia import informacion_liquidoRepuestos_registrados
+#from database.persistencia import informacion_liquidoRepuestos_registrados
 from telebot import types
 from config import bot
 from historicos.implementaciones import LectorFuenteDatos
@@ -51,19 +51,26 @@ class ConsultarHistorico:
             bot.send_chat_action(data.chat.id, 'typing')
             sleep(1)    
 
+    # def validarExistenciaPlaca(data):
+    #     lista_placas.clear()
+    #     ConsultarHistorico.traerListaVehiculos()
+    #     placa_upper = data.text.upper()
+    #     if placa_upper in lista_placas:
+    #         return True
+    #     else:
+    #         return False  
+
     def validarExistenciaPlaca(data):
-        lista_placas.clear()
-        ConsultarHistorico.traerListaVehiculos()
-        placa_upper = data.text.upper()
-        if placa_upper in lista_placas:
-            return True
-        else:
-            return False     
+        vehiculos = historicosDb.consultarVehiculos()
+        for vehiculo in vehiculos:
+            if vehiculo.placa == data.text:
+                return True
+        return False      
 
 
     def solicitarCedulaMecanicoPopietarioLiquidos(data, bot):
 
-        placaVehiculo = data.text.upper()
+        placaVehiculo = data.text
         placa_actual['placa'] = placaVehiculo
     
         ConsultarHistorico.enviarAccionEscribiendo(data, bot)
@@ -76,19 +83,20 @@ class ConsultarHistorico:
         vehiculos = historicosDb.consultarVehiculos()
         if len(vehiculos) > 0:           
             for vehiculo in vehiculos:
-                if vehiculo.placaVehiculo.upper() == placa_actual['placa'] and (vehiculo.mecanicoAsignado == data.text or vehiculo.documentoPopietario == data.text):
+                if vehiculo.placa == placa_actual['placa'] and (vehiculo.mecanicoAsignado == data.text or vehiculo.documentoPropietario == data.text):
                     placa_actual['placa'] = 'sinPlaca'
                     
                     #se muestra la información de la consulta
                     consulta = ""
-                    liquidosRepuestos = historicosDb.guardarLiquidosRepuestos()
+                    liquidosRepuestos = historicosDb.obtenerLiqudisoRepuestos()
                     if len(liquidosRepuestos) > 0: 
                         for registro in liquidosRepuestos:
-                            consulta += f" \nNivel de aceite: {registro.nivelAceite} \nNivel Líquido de frenos: {registro.nivelLiquidoFrenos} \nNivel líquido refrigerante:  {registro.nivelRefrigerante} \nNivel líquido de dirección: {registro.nivelLiquidoDireccion} \n------------------------"
+                            if registro.placa == vehiculo.placa:
+                                consulta += f" \nNivel de aceite: {registro.nivelAceite} \nNivel Líquido de frenos: {registro.nivelLiquidoFrenos} \nNivel líquido refrigerante:  {registro.nivelRefrigerante} \nNivel líquido de dirección: {registro.nivelLiquidoDireccion} \n------------------------"
                     else: 
                         consulta= "No existe un histórico de registro de líquidos para el vehículo consultado"
 
-                    bot.send_message(data.chat.id, f"El historial de líquidos registrados para el vehículo con placas {vehiculo.placaVehiculo} es: {consulta} ")
+                    bot.send_message(data.chat.id, f"El historial de líquidos registrados para el vehículo con placas {vehiculo.placa} es: {consulta} ")
 
                     ConsultarHistorico.mostrarMenuPrincipal(data, bot, types, "Muchas gracias, selecciona una opción:")
                     return                
@@ -98,7 +106,7 @@ class ConsultarHistorico:
 
     def solicitarCedulaMecanicoPopietarioRepuestos(data, bot):
 
-        placaVehiculo = data.text.upper()
+        placaVehiculo = data.text
         placa_actual['placa'] = placaVehiculo
     
         ConsultarHistorico.enviarAccionEscribiendo(data, bot)
@@ -111,20 +119,21 @@ class ConsultarHistorico:
         vehiculos = historicosDb.consultarVehiculos()
         if len(vehiculos) > 0:           
             for vehiculo in vehiculos:
-                if vehiculo.placaVehiculo.upper() == placa_actual['placa'] and (vehiculo.mecanicoAsignado == data.text or vehiculo.documentoPopietario == data.text):
+                if vehiculo.placa == placa_actual['placa'] and (vehiculo.mecanicoAsignado == data.text or vehiculo.documentoPropietario == data.text):
                     placa_actual['placa'] = 'sinPlaca'
                     
                     #se muestra la información de la consulta
                     consulta = ""
-                    liquidosRepuestos = historicosDb.guardarLiquidosRepuestos()
+                    liquidosRepuestos = historicosDb.obtenerLiqudisoRepuestos()
                     if len(liquidosRepuestos) > 0: 
                         for registro in liquidosRepuestos:
-                            if (registro.cambioRepuestos) != "":
-                                consulta += f" \nCambio de repuestos : {registro.cambioRepuestos} \n------------------------"
+                            if (registro.repuestos) != "":
+                                if registro.placa == vehiculo.placa:
+                                    consulta += f" \nCambio de repuestos : {registro.repuestos} \n------------------------"
                     else: 
                         consulta= "No existe un histórico de cambio de repuestos para el vehículo consultado"
 
-                    bot.send_message(data.chat.id, f"El historial de repuestos registrados para el vehículo con placas {vehiculo.placaVehiculo} es: {consulta} ")
+                    bot.send_message(data.chat.id, f"El historial de repuestos registrados para el vehículo con placas {vehiculo.placa} es: {consulta} ")
 
                     ConsultarHistorico.mostrarMenuPrincipal(data, bot, types, "Muchas gracias, selecciona una opción:")
                     return                                   
