@@ -73,32 +73,32 @@ class Vehiculo(Base):
         return self.placa
     
 
-# class LiquidoRepuesto(Base):
-#     __tablename__ = 'liquidosRepuestos'
+class LiquidoRepuesto(Base):
+    __tablename__ = 'liquidosRepuestos'
 
-#     idRegistro = Column('idRegistro', Integer, primary_key=True, autoincrement=True)
-#     nivelAceite = Column('nivelAceite', String(15), nullable=False)
-#     nivelLiquidoFrenos = Column('nivelLiquidoFrenos', String(15), nullable=False)
-#     nivelRefrigerante = Column('nivelRefrigerante', String(15), nullable=False)
-#     nivelLiquidoDireccion = Column('nivelLiquidoDireccion', String(15), nullable=False)
-#     documentoMecanico = Column('documentoMecanico', String(20), nullable=False)
-#     repuestos = Column('repuestos', String(200), nullable=False)
-#     placaVehiculo = Column('placa', String(15), ForeignKey('vehiculos.placa', onupdate='CASCADE', ondelete='CASCADE'), nullable=False)
-#     placa = relationship("Vehiculo", back_populates="liquidosRepuestos")
-#     fecha = Column('fecha', DateTime, server_default=func.now(), nullable=True)
+    idRegistro = Column('idRegistro', Integer, primary_key=True, autoincrement=True)
+    placa = Column('placa', String(20), nullable=False)
+    nivelAceite = Column('nivelAceite', String(15), nullable=False)
+    documentoMecanico = Column('documentoMecanico', String(20), nullable=False)
+    nivelLiquidoFrenos = Column('nivelLiquidoFrenos', String(15), nullable=False)
+    nivelRefrigerante = Column('nivelRefrigerante', String(15), nullable=False)
+    nivelLiquidoDireccion = Column('nivelLiquidoDireccion', String(15), nullable=False)
+    repuestos = Column('repuestos', String(200), nullable=False)
+    fecha = Column('fecha', DateTime, server_default=func.now(), nullable=True)
+    #placaVehiculo = Column('placa', String(15), ForeignKey('vehiculos.placa', onupdate='CASCADE', ondelete='CASCADE'), nullable=False)
+    #placa = relationship("Vehiculo", back_populates="liquidosRepuestos")
 
-#     def __init__(self, idRegistro, nivelAceite, nivelLiquidoFrenos, nivelRefrigerante, nivelLiquidoDireccion, documentoMecanico, repuestos, placaVehiculo, fecha):
-#         self.idRegistro = idRegistro
-#         self.nivelAceite = nivelAceite
-#         self.nivelLiquidoFrenos = nivelLiquidoFrenos
-#         self.nivelRefrigerante = nivelRefrigerante
-#         self.nivelLiquidoDireccion = nivelLiquidoDireccion
-#         self.documentoMecanico = documentoMecanico
-#         self.repuestos = repuestos
-#         self.placaVehiculo = placaVehiculo
-#         self.fecha = fecha
+    def __init__(self, placa, nivelAceite, documentoMecanico, nivelLiquidoFrenos, nivelRefrigerante, nivelLiquidoDireccion, repuestos, fecha):
+        self.placa = placa
+        self.nivelAceite = nivelAceite
+        self.documentoMecanico = documentoMecanico
+        self.nivelLiquidoFrenos = nivelLiquidoFrenos
+        self.nivelRefrigerante = nivelRefrigerante
+        self.nivelLiquidoDireccion = nivelLiquidoDireccion
+        self.repuestos = repuestos
+        self.fecha = fecha
 
-#     def __repr__(self):
-#         return f"<liquidosRepuestos {self.id}>"
+    def __repr__(self):
+        return self.idRegistro
 
     

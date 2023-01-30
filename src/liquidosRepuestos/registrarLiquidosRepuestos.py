@@ -55,14 +55,21 @@ class LiqudosRepuestos:
             bot.send_chat_action(data.chat.id, 'typing')
             sleep(1)    
 
+    # def validarExistenciaPlaca(data):
+    #     lista_placas.clear()
+    #     LiqudosRepuestos.traerListaVehiculos()
+    #     placa_upper = data.text.upper()
+    #     if placa_upper in lista_placas:
+    #         return True
+    #     else:
+    #         return False 
+
     def validarExistenciaPlaca(data):
-        lista_placas.clear()
-        LiqudosRepuestos.traerListaVehiculos()
-        placa_upper = data.text.upper()
-        if placa_upper in lista_placas:
-            return True
-        else:
-            return False 
+        vehiculos = liquidosRepuestosDb.consultarVehiculos()
+        for vehiculo in vehiculos:
+            if vehiculo.placa == data.text:
+                return True
+        return False    
     
     def obtenerClaveObjeto(record, clave, data):
         if clave == 'placaVehiculo':
@@ -153,11 +160,30 @@ class LiqudosRepuestos:
 
         return respuesta
 
+    # def solicitarCedulaMecanico(data, bot):
+
+    #     record = Record()
+
+    #     placaVehiculo = data.text.upper()
+    #     placa_actual['placa'] = placaVehiculo
+    
+    #     record.placaVehiculo = placaVehiculo
+
+    #     informacion_liquidoRepuestos[data.chat.id] = record
+
+    #     LiqudosRepuestos.enviarAccionEscribiendo(data, bot)
+
+    #     respuesta = bot.send_message(data.chat.id, 'Ingresa por favor el documento del mécanico asignado al vehículo')
+    #     bot.register_next_step_handler(respuesta, LiqudosRepuestos.validarMecanicoPlaca)
+
+    #     #respuesta = bot.reply_to(data, 'Ingresa por favor el documento del mécanico asignado al vehículo')
+    #     #return respuesta
+
     def solicitarCedulaMecanico(data, bot):
 
         record = Record()
 
-        placaVehiculo = data.text.upper()
+        placaVehiculo = data.text
         placa_actual['placa'] = placaVehiculo
     
         record.placaVehiculo = placaVehiculo
@@ -170,13 +196,13 @@ class LiqudosRepuestos:
         bot.register_next_step_handler(respuesta, LiqudosRepuestos.validarMecanicoPlaca)
 
         #respuesta = bot.reply_to(data, 'Ingresa por favor el documento del mécanico asignado al vehículo')
-        #return respuesta
+        #return respuesta        
 
     def validarMecanicoPlaca(data):
         vehiculos  = liquidosRepuestosDb.consultarVehiculos()
         if len(vehiculos) > 0:           
             for vehiculo in vehiculos:
-                if vehiculo.placaVehiculo.upper() == placa_actual['placa'] and (vehiculo.mecanicoAsignado == data.text):
+                if vehiculo.placa == placa_actual['placa'] and (vehiculo.mecanicoAsignado == data.text):
                     #Persiste la respuesta ingresada por el usuario y retorna la respuesta
                     respuesta =  LiqudosRepuestos.solicitarDatos(data, bot, 'Ingresa por favor el nivel de aceite del vehículo', 'cedulaMecanico')
                 
@@ -241,12 +267,12 @@ class LiqudosRepuestos:
         vehiculos = liquidosRepuestosDb.consultarVehiculos()
         if len(vehiculos) > 0:           
             for vehiculo in vehiculos:
-                if vehiculo.placaVehiculo.upper() == placa_actual['placa']:
+                if vehiculo.placa == placa_actual['placa']:
                     correo = vehiculo.correoPropietario
 
                     msg = MIMEMultipart()
                     # cuerpo del mensaje
-                    message =  "Señor(a) propietari@ " + vehiculo.nombrePropietario + " el presente correo es para notificarle sobre el nuevo registro de líquidos y cambio de repuestos para el vehículo de placas: " + vehiculo.placaVehiculo + ". Información registrada por el mécanico: " + vehiculo.mecanicoAsignado + ". Para revisar el historial, por favor ingrese al chat"
+                    message =  "Señor(a) propietari@ " + vehiculo.nombrePropietario + " el presente correo es para notificarle sobre el nuevo registro de líquidos y cambio de repuestos para el vehículo de placas: " + vehiculo.placa + ". Información registrada por el mécanico: " + vehiculo.mecanicoAsignado + ". Para revisar el historial, por favor ingrese al chat"
 
                     # los parametros del correo remitente
                     password = "bduaovijjfgfnzma"
