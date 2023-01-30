@@ -1,4 +1,4 @@
-from database.persistencia import vehiculos_registrados
+#from database.persistencia import vehiculos_registrados
 from vehiculo.ivehiculo import Ivehiculo
 import database.db as db
 from database.db import Vehiculo

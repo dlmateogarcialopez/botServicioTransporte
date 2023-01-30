@@ -7,3 +7,7 @@ class Iseguro(ABC):
     @abstractmethod
     def consultarSeguros(self) :
         pass
+
+    @abstractmethod
+    def actualizarSeguros(self, placa, soat, seguroContractual, seguroExtraContractual):
+        pass

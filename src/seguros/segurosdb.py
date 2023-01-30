@@ -8,3 +8,6 @@ class SeguroDb:
 
     def consultarSeguros(self):
         return self.iseguro.consultarSeguros()
+    
+    def actualizarSeguros(self, placa, soat, seguroContractual, seguroExtraContractual):
+        return self.iseguro.actualizarSeguros(placa, soat, seguroContractual, seguroExtraContractual)

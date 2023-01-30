@@ -17,8 +17,8 @@ class Seguro:
             existeVehiculo = 0
             vehiculos = segurooDb.consultarSeguros()
             for vehiculo in vehiculos:     
-                if vehiculo.placaVehiculo == message.text:
-                    placa['placa'] = vehiculo.placaVehiculo
+                if vehiculo.placa == message.text:
+                    placa['placa'] = vehiculo.placa
                     existeVehiculo = existeVehiculo + 1
 
             #Validar si la placa existe, en caso de que si exista, se continúa con el registro, de lo contrario no se seguirá con el registro y se mostrará el menú principal
@@ -77,10 +77,11 @@ class Seguro:
             if len(seguros) == 3:
                 vehiculos = segurooDb.consultarSeguros()
                 for carro in vehiculos:
-                    if carro.placaVehiculo == placa['placa']:
-                        carro.soat = seguros['soat']
-                        carro.seguroContractual = seguros['seguroContractual']
-                        carro.seguroExtraContrActual = seguros['seguroExtraContrActual']
+                    if carro.placa == placa['placa']:
+                        # carro.soat = seguros['soat']
+                        # carro.seguroContractual = seguros['seguroContractual']
+                        # carro.seguroExtraContractual = seguros['seguroExtraContrActual']
+                        segurooDb.actualizarSeguros(carro.placa, seguros['soat'], seguros['seguroContractual'], seguros['seguroExtraContrActual'])
                         placa['placa'] = 'sinPlaca'
                         break
             bot.reply_to(message, 'Registro exitoso de los seguros')
@@ -95,7 +96,7 @@ class Seguro:
             vehiculos = segurooDb.consultarSeguros()
             if len(vehiculos) > 0:
                 for vehiculo in vehiculos:     
-                    if vehiculo.placaVehiculo == message.text:
+                    if vehiculo.placa == message.text:
                         placaConsulta['placa'] = message.text
                         respuesta = bot.send_message(message.chat.id, 'Ingresa por favor el documento del mecánico o del propietario')                        
                         bot.register_next_step_handler(respuesta, Seguro.validarDocumento)
@@ -126,7 +127,7 @@ class Seguro:
             else:
                     placaConsulta['placa'] = 'sinPlaca'
                     #mensaje que se le envia a l usuario para mostrar la información de los seguros
-                    bot.send_message(message.chat.id, f"Los últimos seguros registrados para el vehículo con placas {vehiculo.placaVehiculo} son: \nSOAT: {vehiculo.soat} \nSeguro contractual: {vehiculo.seguroContractual} \nSeguro extracontractual: {vehiculo.seguroExtraContrActual}")
+                    bot.send_message(message.chat.id, f"Los últimos seguros registrados para el vehículo con placas {vehiculo.placa} son: \nSOAT: {vehiculo.soat} \nSeguro contractual: {vehiculo.seguroContractual} \nSeguro extracontractual: {vehiculo.seguroExtraContractual}")
 
                     #Mostrar opción de continuar con la charla  o terminar
                     markup = types.ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
