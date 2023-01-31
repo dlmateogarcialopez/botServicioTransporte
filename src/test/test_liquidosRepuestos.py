@@ -2,13 +2,18 @@ import unittest
 from liquidosRepuestos.registrarLiquidosRepuestos import LiqudosRepuestos
 from liquidosRepuestos.registrarLiquidosRepuestos import Record
 from test.data import data
-
+from vehiculo.registrarDatosVehiculo import Vehiculo
+from vehiculo.registrarDatosVehiculo import  Record as Record2
+from database.persistencia import vehiculos_registrados
+from vehiculo.vehiculoDb import VehiculoDb
 class testLiquidos (unittest.TestCase):
 
     def setUp(self):
         self.liquidos = LiqudosRepuestos()
         self.informacion_liquidoRepuestos = {}
+        self.informacion_vehiculo = {}
         self.record = Record()
+        self.recordVehiculo = Record2()     
 
     """ ********************* IMPORTANTE **********************  """  
     """ PARA EJECUTAR LAS PRUEBAS SE DEBE DE PONER self  EN LA PRIMERA POSICIÓN DE LOS PARAMETROS DE LAS FUNCIONES A TESTEAR """    
@@ -88,6 +93,31 @@ class testLiquidos (unittest.TestCase):
         self.assertFalse(resultado)
 
 
+    def test_validar_envio_correo(self):
+        """ prueba para validar que se envíe el correo electrónico al propietario """
+
+        self.data = data("fgdd", 0, "ffff", "sdfg", "kjuu", "se cambió el freno delantero")
+
+        
+        self.recordVehiculo.documentoPopietario = "1053866958"
+        self.recordVehiculo.correoPropietario = "laulopez0204@gmail.com"
+        self.recordVehiculo.nombrePropietario = "laura garcía"
+        self.recordVehiculo.placaVehiculo = "QWERTY"
+        self.recordVehiculo.descripcioVehiculo = "prueba vehículo"
+        self.recordVehiculo.nivelAceite = "10"
+        self.recordVehiculo.nivelLiquidoFrenos = "11"
+        self.recordVehiculo.nivelRefrigerante = "12"
+        self.recordVehiculo.nivelLiquidoDireccion = "13"
+        self.recordVehiculo.soat = "8956666"
+        self.recordVehiculo.seguroContractual = "852963"
+        self.recordVehiculo.seguroExtraContrActual = "987456321"
+        self.recordVehiculo.mecanicoAsignado = "123"
+        
+        vehiculos_registrados.append(self.recordVehiculo)
+       
+        resultado = self.liquidos.enviarCorreo(self.data)
+
+        self.assertTrue(resultado)
 
 
         
